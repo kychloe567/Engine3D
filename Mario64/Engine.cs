@@ -111,6 +111,7 @@ namespace Mario64
         private int textVao;
         private Shader shaderProgram;
         private Shader textShaderProgram;
+        private Shader depthShaderProgram;
         private int textureCount = 0;
 
         private const int SHADOW_WIDTH = 1024;
@@ -124,6 +125,8 @@ namespace Mario64
         private int screenHeight;
         private int frameCount;
         private double totalTime;
+
+        private int vertex2Size;
 
         // Engine variables
         private List<Mesh> meshes;
@@ -216,67 +219,71 @@ namespace Mario64
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
         }
 
+        Vertex2[] quadVertices =
+        {
+            new Vertex2(new Vector2(-1.0f,  1.0f), new Vector2(0.0f, 1.0f)),
+            new Vertex2(new Vector2(-1.0f, -1.0f), new Vector2(0.0f, 0.0f)),
+            new Vertex2(new Vector2(1.0f, -1.0f), new Vector2(1.0f, 0.0f)),
+            new Vertex2(new Vector2(-1.0f,  1.0f), new Vector2( 0.0f, 1.0f)),
+            new Vertex2(new Vector2(1.0f, -1.0f), new Vector2(1.0f, 0.0f)),
+            new Vertex2(new Vector2(1.0f,  1.0f), new Vector2(1.0f, 1.0f)),
+        };
+
+        int quadVAO, quadVBO;
+
         protected override void OnRenderFrame(FrameEventArgs args)
         {
             double fps = DrawFps(args.Time);
 
+
             viewMatrix = camera.GetViewMatrix();
             frustum = camera.GetFrustum();
 
-            //Rendering scene to depthmap
+            GL.Enable(EnableCap.DepthTest);
+
+            // shadow map creating
+            depthShaderProgram.Use();
+            GL.UniformMatrix4(GL.GetUniformLocation(depthShaderProgram.id, "lightSpaceMatrix"), false, ref lightSpaceMatrix);
             GL.Viewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, depthMapFBO);
             GL.Clear(ClearBufferMask.DepthBufferBit);
 
-            GL.Enable(EnableCap.DepthTest);
-            shaderProgram.Use();
-            SendUniforms();
-
-            //PointLight.SendToGPU(ref pointLights, shaderProgram.id);
-
+            // The model drawing
             foreach (Mesh mesh in meshes)
             {
-                mesh.Draw(ref frustum, ref camera);
+                mesh.Draw();
             }
 
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-            //Rendering scene with depth map
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, depthMapFBO);
+            float[] depthValues = new float[SHADOW_WIDTH * SHADOW_HEIGHT];
+            GL.ReadPixels(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT, PixelFormat.DepthComponent, PixelType.Float, depthValues);
+
+            // Set up viewport
             GL.Viewport(0, 0, screenWidth, screenHeight);
+
+            // Use the debug shader
             GL.ClearColor(Color4.Cyan);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-            GL.BindTexture(TextureTarget.Texture2D, depthMap);
-            //Rendering scene to depthmap
-            GL.Enable(EnableCap.DepthTest);
-            shaderProgram.Use();
-            SendUniforms();
-
-            PointLight.SendToGPU(ref pointLights, shaderProgram.id);
-
-            foreach (Mesh mesh in meshes)
-            {
-                mesh.Draw(ref frustum, ref camera);
-            }
-
-            // Text rendering
+            GL.Clear(ClearBufferMask.ColorBufferBit);
 
             GL.Disable(EnableCap.DepthTest);
+            // Draw the quad with the shader map texture
+            shaderProgram.Use();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, quadVBO);
+            GL.BindVertexArray(quadVAO);
+            GL.BufferData(BufferTarget.ArrayBuffer, quadVertices.Length * vertex2Size, quadVertices, BufferUsageHint.DynamicDraw);
 
-            textMeshes[0] = textGenerator.Generate(textVao, textShaderProgram.id,
-                ((int)fps).ToString() + " fps",
-                new Vector2(10, screenHeight-35),
-                Color4.White,
-                new Vector2(1.5f, 1.5f),
-                new Vector2(screenWidth, screenHeight),
-                ref textureCount);
+            int shadowMapLocation = GL.GetUniformLocation(shaderProgram.id, "shadowMap");
+            GL.ActiveTexture(TextureUnit.Texture0);
+            GL.BindTexture(TextureTarget.Texture2D, depthMap);
+            GL.Uniform1(shadowMapLocation, 0);  // 0 corresponds to TextureUnit.Texture0
+            //Bind the shadow map
 
-            textShaderProgram.Use();
-            SendTextUniforms();
-            foreach (Text textMesh in textMeshes)
-            {
-                textMesh.Draw();
-            }
+            GL.DrawArrays(PrimitiveType.Triangles, 0, quadVertices.Length);
 
-            GL.DisableVertexAttribArray(0);
+
+            //GL.DisableVertexAttribArray(0);
+            GL.BindVertexArray(0);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
 
             Context.SwapBuffers();
 
@@ -293,59 +300,61 @@ namespace Mario64
         protected override void OnLoad()
         {
             base.OnLoad();
-            CursorState = CursorState.Grabbed;
+            //CursorState = CursorState.Grabbed;
 
             textGenerator = new TextGenerator();
 
             GL.Enable(EnableCap.DepthTest);
             //GL.Enable(EnableCap.FramebufferSrgb);
             //GL.Disable(EnableCap.CullFace);
-            GL.Enable(EnableCap.Blend);
-            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+            //GL.Enable(EnableCap.Blend);
+            //GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
             // OPENGL init
             vao = GL.GenVertexArray();
-            textVao = GL.GenVertexArray();
             GenerateShadowMap();
             lightSpaceMatrix = PointLight.GetDirLightSpaceMatrix();
 
-            // create the shader program
             shaderProgram = new Shader("Default.vert", "Default.frag");
-            textShaderProgram = new Shader("textVert.vert", "textFrag.frag");
+            depthShaderProgram = new Shader("depth.vert", "depth.frag");
 
             shaderProgram.Use();
+            // Generate the VAO
+            quadVAO = GL.GenVertexArray();
+            quadVBO = GL.GenBuffer();
+
+            vertex2Size = System.Runtime.InteropServices.Marshal.SizeOf(typeof(Vertex2));
+
+            // Bind the VAO
+            GL.BindBuffer(BufferTarget.ArrayBuffer, quadVBO);
+            GL.BindVertexArray(quadVAO);
+
+            // Bind and set vertex buffer
+
+            // Position attribute
+            GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, vertex2Size, 0);
+            GL.EnableVertexArrayAttrib(quadVAO, 0);
+            // TexCoord attribute
+            GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, vertex2Size, 2 * sizeof(float));
+            GL.EnableVertexArrayAttrib(quadVAO, 1);
+
+            //GL.BufferData(BufferTarget.ArrayBuffer, quadVertices.Length * sizeof(float), quadVertices, BufferUsageHint.DynamicDraw);
+            // Unbind VAO
+            //GL.BindVertexArray(0);
+
+
+
+
+            // create the shader program
+
             //Camera
             camera = new Camera(new Vector2(screenWidth, screenHeight));
             camera.UpdateVectors();
 
-            //Point Lights
-            //pointLights.Add(new PointLight(new Vector3(0, 10, 0), Color4.White, shaderProgram.id, pointLights.Count));
-            //PointLight.SendToGPU(ref pointLights, shaderProgram.id);
 
-            // Passing uniforms to GPU
-            SendUniforms();
-
-
-            // Projection matrix and mesh loading
-            //meshCube.OnlyCube();
-            //meshCube.OnlyTriangle();
-            //meshCube.ProcessObj("spiro.obj");
             meshes.Add(new Mesh(vao, shaderProgram.id, "spiro.obj", "High.png", ref textureCount));
-            //meshes.Add(new Mesh(vao, shaderProgram.id, "sphere.obj"));
-            //meshes.Last().TranslateRotateScale(new Vector3(7, -2.0f, 0), new Vector3(0, 0, 0), Vector3.One);
 
             frustum = camera.GetFrustum();
-
-            textShaderProgram.Use();
-            SendTextUniforms();
-
-            textMeshes.Add(textGenerator.Generate(textVao, textShaderProgram.id,
-                "test",
-                new Vector2(10, 10),
-                Color4.White,
-                new Vector2(10, 10),
-                new Vector2(screenWidth, screenHeight),
-                ref textureCount));
         }
 
         protected override void OnUnload()

@@ -20,8 +20,18 @@ namespace Mario64
 {
     public struct Vertex
     {
-        public Vector4 Position;
-        public Vector3 Normal;
+        public Vector3 Position;
+        public Vector2 Texture;
+    }
+    public struct Vertex2
+    {
+        public Vertex2(Vector2 p, Vector2 t)
+        {
+            Position = p;
+            Texture = t;
+        }
+
+        public Vector2 Position;
         public Vector2 Texture;
     }
     public struct PointNormal
@@ -65,14 +75,14 @@ namespace Mario64
             GL.GenBuffers(1, out vbo);
 
             // Texture -----------------------------------------------
-            textureId = GL.GenTexture();
-            GL.BindTexture(TextureTarget.Texture2D, textureId);
+            //textureId = GL.GenTexture();
+            //GL.BindTexture(TextureTarget.Texture2D, textureId);
 
             this.embeddedModelName = embeddedModelName;
             ProcessObj(embeddedModelName);
 
-            this.embeddedTextureName = embeddedTextureName;
-            LoadTexture(embeddedTextureName);
+            //this.embeddedTextureName = embeddedTextureName;
+            //LoadTexture(embeddedTextureName);
 
             ComputeVertexNormals(ref tris);
 
@@ -84,58 +94,15 @@ namespace Mario64
             GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
             GL.BindVertexArray(vaoId);
 
-            GL.VertexAttribPointer(0, 4, VertexAttribPointerType.Float, false, vertexSize, 0);
+
+            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, vertexSize, 0);
             GL.EnableVertexArrayAttrib(vaoId, 0);
 
-            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, vertexSize, 4 * sizeof(float));
+            GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, vertexSize, 3 * sizeof(float));
             GL.EnableVertexArrayAttrib(vaoId, 1);
-
-            GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, vertexSize, 7 * sizeof(float));
-            GL.EnableVertexArrayAttrib(vaoId, 2);
-
-            int textureLocation = GL.GetUniformLocation(shaderProgramId, "textureSampler");
-            GL.ActiveTexture(TextureUnit.Texture0 + textureUnit);
-            GL.BindTexture(TextureTarget.Texture2D, textureId);
-            GL.Uniform1(textureLocation, textureUnit);  // 0 corresponds to TextureUnit.Texture0
 
             GL.BindVertexArray(0); // Unbind the VAO
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0); // Unbind the VBO
-        }
-
-        public Mesh(int vaoId, int shaderProgramId, string embeddedModelName)
-        {
-            tris = new List<triangle>();
-            vertices = new List<Vertex>();
-
-            this.vaoId = vaoId;
-            this.shaderProgramId = shaderProgramId;
-
-            // generate a buffer
-            GL.GenBuffers(1, out vbo);
-
-            // Texture -----------------------------------------------
-            int textureId = GL.GenTexture();
-            GL.BindTexture(TextureTarget.Texture2D, textureId);
-
-            this.embeddedModelName = embeddedModelName;
-            ProcessObj(embeddedModelName);
-
-            vertexSize = System.Runtime.InteropServices.Marshal.SizeOf(typeof(Vertex));
-            int sizeOfFloat = Marshal.SizeOf(typeof(float));
-            matrix4Size = sizeOfFloat * 16;
-
-            // VAO creating
-            GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-            GL.BindVertexArray(vaoId);
-
-            GL.VertexAttribPointer(0, 4, VertexAttribPointerType.Float, false, vertexSize, 0);
-            GL.EnableVertexArrayAttrib(vaoId, 0);
-
-            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, vertexSize, 4 * sizeof(float));
-            GL.EnableVertexArrayAttrib(vaoId, 1);
-
-            GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, vertexSize, 7 * sizeof(float));
-            GL.EnableVertexArrayAttrib(vaoId, 2);
         }
 
         public void AddTriangle(triangle tri)
@@ -166,50 +133,29 @@ namespace Mario64
         {
             return new Vertex()
             {
-                Position = new Vector4(screenPos.X, screenPos.Y, screenPos.Z, 1.0f),
-                Normal = new Vector3(normal.X, normal.Y, normal.Z),
+                Position = new Vector3(screenPos.X, screenPos.Y, screenPos.Z),
                 Texture = new Vector2(tex.u, tex.v)
             };
         }
        
 
-        public void Draw(ref Frustum frustum, ref Camera camera, int depthMap = -1)
+        public void Draw()
         {
             vertices = new List<Vertex>();
 
             foreach (triangle tri in tris)
             {
-                if (frustum.IsTriangleInside(tri) || camera.IsTriangleClose(tri))
-                {
-                    if (tri.gotPointNormals)
-                    {
-                        vertices.Add(ConvertToNDC(tri.p[0], tri.t[0], tri.n[0]));
-                        vertices.Add(ConvertToNDC(tri.p[1], tri.t[1], tri.n[1]));
-                        vertices.Add(ConvertToNDC(tri.p[2], tri.t[2], tri.n[2]));
-                    }
-                    else
-                    {
-                        Vector3 normal = tri.ComputeTriangleNormal();
-                        vertices.Add(ConvertToNDC(tri.p[0], tri.t[0], normal));
-                        vertices.Add(ConvertToNDC(tri.p[1], tri.t[1], normal));
-                        vertices.Add(ConvertToNDC(tri.p[2], tri.t[2], normal));
-                    }
-                }
+                Vector3 normal = tri.ComputeTriangleNormal();
+                vertices.Add(ConvertToNDC(tri.p[0], tri.t[0], normal));
+                vertices.Add(ConvertToNDC(tri.p[1], tri.t[1], normal));
+                vertices.Add(ConvertToNDC(tri.p[2], tri.t[2], normal));
             }
+               
+            
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
             GL.BindVertexArray(vaoId);
             GL.BufferData(BufferTarget.ArrayBuffer, vertices.Count * vertexSize, vertices.ToArray(), BufferUsageHint.DynamicDraw);
-
-            int textureLocation = GL.GetUniformLocation(shaderProgramId, "textureSampler");
-            GL.ActiveTexture(TextureUnit.Texture0 + textureUnit);
-            GL.BindTexture(TextureTarget.Texture2D, textureId);
-            GL.Uniform1(textureLocation, textureUnit);
-
-            if(depthMap != -1)
-            {
-                GL.Uniform1(GL.GetUniformLocation(shaderProgramId, "shadowMap"), depthMap);
-            }
 
             GL.DrawArrays(PrimitiveType.Triangles, 0, vertices.Count);
 

@@ -110,10 +110,10 @@ namespace Mario64
         public static Matrix4 GetDirLightSpaceMatrix()
         {
             float near = 1.0f;
-            float far = 7.5f;
-            Matrix4 lightProjection = Matrix4.CreateOrthographic(-10.0f, 10.0f, near, far);
-            Matrix4 lightView = Matrix4.LookAt(new Vector3(0.0f, 10.0f, 0.0f),
-                                               new Vector3(0.0f, -1.0f, 0.0f),
+            float far = 100.5f;
+            Matrix4 lightProjection = Matrix4.CreateOrthographic(-100.0f, 100.0f, near, far);
+            Matrix4 lightView = Matrix4.LookAt(new Vector3(-2.0f, 4.0f, -1.0f),
+                                               new Vector3(0.0f, 0.0f, 0.0f),
                                                new Vector3(0.0f, 1.0f, 0.0f));
 
             Matrix4 lightSpaceMatrix = lightProjection * lightView;
