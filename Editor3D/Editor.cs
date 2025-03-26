@@ -7,6 +7,7 @@ namespace Editor3D
 {
     public class Editor
     {
+        [STAThread]
         public static void Main(string[] args)
         {
             Vector2i windowSize = new Vector2i(1280, 768);
