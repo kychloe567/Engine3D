@@ -421,6 +421,7 @@ namespace Engine3D
             return frustum;
         }
 
+
         public void UpdatePositionToGround(List<triangle> groundTriangles)
         {
             float offsetHeight = 4f;
@@ -469,7 +470,7 @@ namespace Engine3D
             projectionMatrix = GetProjectionMatrix();
             projectionMatrixBigger = GetProjectionMatrixBigger(1.3f);
             projectionMatrixOrtho = GetProjectionMatrixOrtho();
-            frustum = GetFrustum(); 
+            frustum = GetFrustum();
         }
     }
 }

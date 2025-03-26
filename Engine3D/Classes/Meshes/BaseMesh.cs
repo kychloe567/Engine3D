@@ -538,17 +538,39 @@ namespace Engine3D
                             {
                                 if (modelMatrix != Matrix4.Identity)
                                 {
+                                    List<Vector3> p = new List<Vector3>()
+                                    {
+                                        AHelp.AssimpToOpenTK(mesh.mesh.Vertices[(int)indices_[0]]),
+                                        AHelp.AssimpToOpenTK(mesh.mesh.Vertices[(int)indices_[1]]),
+                                        AHelp.AssimpToOpenTK(mesh.mesh.Vertices[(int)indices_[2]])
+                                    };
+
                                     bool visible = false;
                                     for (int i = 0; i < 3; i++)
                                     {
-                                        Vector3 p = AHelp.AssimpToOpenTK(mesh.mesh.Vertices[(int)indices_[i]]);
                                         if (!globalPosition)
-                                            p = Vector3.TransformPosition(AHelp.AssimpToOpenTK(mesh.mesh.Vertices[(int)indices_[i]]), modelMatrix);
-                                        if (camera.frustum.IsInside(p) || camera.IsPointClose(p))
+                                            p[i] = Vector3.TransformPosition(AHelp.AssimpToOpenTK(mesh.mesh.Vertices[(int)indices_[i]]), modelMatrix);
+                                        if (camera.frustum.IsInside(p[i]) || camera.IsPointClose(p[i]))
                                         {
                                             visible = true;
                                             break;
                                         }
+                                    }
+
+                                    if (!visible)
+                                    {
+                                        if (camera.frustum.IsLineInside(new Line(p[0], p[1])))
+                                            visible = true;
+                                    }
+                                    if (!visible)
+                                    {
+                                        if (camera.frustum.IsLineInside(new Line(p[1], p[2])))
+                                            visible = true;
+                                    }
+                                    if (!visible)
+                                    {
+                                        if (camera.frustum.IsLineInside(new Line(p[0], p[2])))
+                                            visible = true;
                                     }
 
                                     if (visible)
@@ -566,14 +588,37 @@ namespace Engine3D
                                 }
                                 else
                                 {
+                                    List<Vector3> p = new List<Vector3>()
+                                    {
+                                        AHelp.AssimpToOpenTK(mesh.mesh.Vertices[(int)indices_[0]]),
+                                        AHelp.AssimpToOpenTK(mesh.mesh.Vertices[(int)indices_[1]]),
+                                        AHelp.AssimpToOpenTK(mesh.mesh.Vertices[(int)indices_[2]])
+                                    };
+
                                     bool visible = false;
                                     for (int i = 0; i < 3; i++)
                                     {
-                                        if (camera.frustum.IsInside(AHelp.AssimpToOpenTK(mesh.mesh.Vertices[(int)indices_[i]])) || camera.IsPointClose(AHelp.AssimpToOpenTK(mesh.mesh.Vertices[(int)indices_[i]])))
+                                        if (camera.frustum.IsInside(p[i]) || camera.IsPointClose(p[i]))
                                         {
                                             visible = true;
                                             break;
                                         }
+                                    }
+
+                                    if (!visible)
+                                    {
+                                        if (camera.frustum.IsLineInside(new Line(p[0], p[1])))
+                                            visible = true;
+                                    }
+                                    if (!visible)
+                                    {
+                                        if (camera.frustum.IsLineInside(new Line(p[1], p[2])))
+                                            visible = true;
+                                    }
+                                    if (!visible)
+                                    {
+                                        if (camera.frustum.IsLineInside(new Line(p[0], p[2])))
+                                            visible = true;
                                     }
 
                                     if (visible)

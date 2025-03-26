@@ -347,24 +347,33 @@ namespace Engine3D
                             catch { }
                         }
 
-                        try
-                        {
-                            // Deleting temp folder content
-                            DirectoryInfo di = new DirectoryInfo(dirName);
-                            foreach (FileInfo file in di.GetFiles())
-                            {
-                                file.Delete();
-                            }
-                            foreach (DirectoryInfo subDirectory in di.GetDirectories())
-                            {
-                                subDirectory.Delete(true); // true => delete recursively
-                            }
+                        DirectoryInfo di = new DirectoryInfo(dirName);
 
-                            Directory.Delete(dirName);
-                        }
-                        catch (Exception e)
+                        bool success = false;
+                        int tries = 0;
+
+                        while (!success)
                         {
-                            Engine.consoleManager.AddLog(e.Message, LogType.Warning);
+                            tries++;
+                            if (tries > 50)
+                                Engine.consoleManager.AddLog("Error at DownloadIfNeeded", LogType.Warning);
+
+                            try
+                            {
+                                foreach (FileInfo file in di.GetFiles())
+                                {
+                                    file.Delete();
+                                }
+                                foreach (DirectoryInfo subDirectory in di.GetDirectories())
+                                {
+                                    subDirectory.Delete(true);
+                                }
+
+                                Directory.Delete(dirName);
+                            }
+                            catch { }
+
+                            success = true;
                         }
 
                         assetZipToDownload.Remove(assetToDownload);
@@ -432,22 +441,31 @@ namespace Engine3D
             if (!Directory.Exists(Environment.CurrentDirectory + "\\Assets\\" + folder))
                 return;
 
-            try
+            DirectoryInfo di = new DirectoryInfo(Environment.CurrentDirectory + "\\Assets\\" + folder);
+
+            bool success = false;
+            int tries = 0;
+
+            while (!success)
             {
-                // Deleting temp folder content
-                DirectoryInfo di = new DirectoryInfo(Environment.CurrentDirectory + "\\Assets\\" + folder);
-                foreach (FileInfo file in di.GetFiles())
+                tries++;
+                if (tries > 50)
+                    Engine.consoleManager.AddLog("Error at DeleteFolderContent", LogType.Warning);
+
+                try
                 {
-                    file.Delete();
+                    foreach (FileInfo file in di.GetFiles())
+                    {
+                        file.Delete();
+                    }
+                    foreach (DirectoryInfo subDirectory in di.GetDirectories())
+                    {
+                        subDirectory.Delete(true);
+                    }
                 }
-                foreach (DirectoryInfo subDirectory in di.GetDirectories())
-                {
-                    subDirectory.Delete(true); // true => delete recursively
-                }
-            }
-            catch(Exception e)
-            {
-                Engine.consoleManager.AddLog(e.Message, LogType.Warning);
+                catch { }
+
+                success = true;
             }
         }
 

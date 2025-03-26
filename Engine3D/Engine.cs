@@ -703,7 +703,7 @@ namespace Engine3D
             sun.transformation.Position = new Vector3(0, 0, 0);
             sun.transformation.Rotation = Helper.QuaternionFromEuler(new Vector3(240, 0, 0));
             Light? sunComp = (Light?)sun.GetComponent<Light>();
-            if(sunComp != null)
+            if (sunComp != null)
                 sunComp.RecalculateShadows();
 
             shaderProgram.Use();
@@ -711,6 +711,11 @@ namespace Engine3D
             Light.BindLightUBO(ref lightUBO, shaderProgram.programId);
             Light.SendToGPU(lights, shaderProgram.programId);
             Light.SendUBOToGPU(lights, lightUBO);
+
+            //test
+            LoadScene("C:\\Users\\Chloe\\Desktop\\GithubProjects\\Engine3D\\Engine3DSaves\\bugandoptSetup2.proj");
+            gizmoManager = GetGizmoManager();
+            //test
 
             #region DebugLines
             // Projection matrix and mesh loading

@@ -15,7 +15,7 @@ namespace Engine3D
     {
         public void LoadingScreen()
         {
-            if (!engineData.assetManager.allLoaded)
+            if (!engineData.assetManager.allLoaded && engineData.assetManager.firstLoad)
             {
                 editorData.uiHasMouse = true;
 

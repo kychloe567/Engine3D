@@ -91,9 +91,26 @@ namespace Engine3D
 
         public bool IsLineInside(Line line)
         {
-            var a = IsInside(line.Start);
-            var b = IsInside(line.End);
-            return a || b;
+            bool startInside = true;
+            bool endInside = true;
+
+            foreach (Plane plane in planes)
+            {
+                // Compute signed distances from the line's endpoints to the plane
+                float startDistance = Vector3.Dot(plane.normal, line.Start) + plane.distance;
+                float endDistance = Vector3.Dot(plane.normal, line.End) + plane.distance;
+
+                // If both points are outside on the negative side of any plane, the line is completely outside
+                if (startDistance < 0 && endDistance < 0)
+                    return false;
+
+                // If at least one point is inside, keep track of it
+                if (startDistance >= 0) endInside = false;
+                if (endDistance >= 0) startInside = false;
+            }
+
+            // If both points were outside all planes, the line is outside
+            return !(startInside && endInside);
         }
 
         public List<float> GetData()

@@ -154,6 +154,7 @@ namespace Engine3D
         public List<Asset> loadedAssets = new List<Asset>();
         public AssetFolder assets = new AssetFolder("Assets");
         public bool allLoaded = false;
+        public bool firstLoad = true;
         private TextureManager textureManager;
 
         public AssetManager(ref TextureManager textureManager)
@@ -225,7 +226,11 @@ namespace Engine3D
                 }
             }
             else
+            {
                 allLoaded = true;
+                if (firstLoad)
+                    firstLoad = false;
+            }
 
             if (toRemove.Count > 0)
             {

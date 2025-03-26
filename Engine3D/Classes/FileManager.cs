@@ -273,7 +273,21 @@ namespace Engine3D
             string folderFullPath = Environment.CurrentDirectory + "\\Assets\\" + folderPath;
             if (Directory.Exists(folderFullPath))
             {
-                Directory.Delete(folderFullPath, true);
+                bool success = false;
+                int tries = 0;
+                while (!success)
+                {
+                    try
+                    {
+                        tries++;
+                        if (tries > 50)
+                            break;
+                        Directory.Delete(folderFullPath, true); 
+                        success = true; 
+                    }
+                    catch
+                    { }
+                }
             }
         }
 
