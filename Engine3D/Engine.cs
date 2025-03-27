@@ -866,7 +866,7 @@ namespace Engine3D
             #endregion
 
             // We have text on screen
-            // TODOOOO
+            // TODOOOO for transparent objects
             if (haveText)
             {
                 GL.Enable(EnableCap.Blend);
