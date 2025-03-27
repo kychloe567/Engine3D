@@ -9,10 +9,13 @@ namespace Engine3D
 {
     public partial class ImGuiController : BaseImGuiController
     {
+        private bool wasPopupOpen = false;
+
         public void ObjectManagingMenu()
         {
             if (ImGui.BeginPopupContextWindow("objectManagingMenu", ImGuiPopupFlags.MouseButtonRight))
             {
+                wasPopupOpen = true;
                 engine.editorMenuOpen = true;
                 if (ImGui.MenuItem("Empty Object"))
                 {
@@ -96,6 +99,14 @@ namespace Engine3D
                 }
 
                 ImGui.EndPopup();
+            }
+            else
+            {
+                if (wasPopupOpen)
+                {
+                    engine.editorMenuOpen = false;
+                }
+                wasPopupOpen = false;
             }
         }
     }
