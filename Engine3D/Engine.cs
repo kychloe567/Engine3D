@@ -715,7 +715,7 @@ namespace Engine3D
             Light.SendUBOToGPU(lights, lightUBO);
 
             //test
-            LoadScene("C:\\Users\\Chloe\\Desktop\\GithubProjects\\Engine3D\\Engine3DSaves\\bugandoptSetup2.proj");
+            LoadScene("C:\\Users\\Chloe\\Desktop\\GithubProjects\\Engine3D\\Engine3DSaves\\bugandoptSetup.proj");
             gizmoManager = GetGizmoManager();
             //test
 

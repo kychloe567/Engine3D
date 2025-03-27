@@ -285,7 +285,7 @@ namespace Engine3D
             PxTriangleMeshGeometry meshGeo = PxTriangleMeshGeometry_new(triMesh, &meshScale, PxMeshGeometryFlags.DoubleSided);
 
             var material = physx.GetPhysics()->CreateMaterialMut(StaticFriction, DynamicFriction, Restitution);
-            PxVec3 position = new PxVec3 { x = trans.Position.X, y = trans.Position.Y, z = trans.Position.Z };
+            PxVec3 position = new PxVec3 { x = 0, y = 0, z = 0 };
             PxTransform transform = PxTransform_new_1(&position);
             var identity = PxTransform_new_2(PxIDENTITY.PxIdentity);
             PxRigidStatic* staticCollider = physx.GetPhysics()->PhysPxCreateStatic(&transform, (PxGeometry*)&meshGeo, material, &identity);
