@@ -73,6 +73,30 @@ namespace Engine3D
             SendUniforms();
         }
 
+        // Custom Mesh Without Texture
+        public InstancedMesh(InstancedVAO vao, VBO vbo, int shaderProgramId, string relativeModelPath, Vector2 windowSize, ref Camera camera, ref Object parentObject) : base(vao.id, vbo.id, shaderProgramId)
+        {
+            this.parentObject = parentObject;
+            this.parentObject.name = Path.GetFileName(relativeModelPath);
+            this.shaderProgramId = shaderProgramId;
+
+            Vao = vao;
+            Vbo = vbo;
+
+            this.windowSize = windowSize;
+            this.camera = camera;
+
+            modelPath = relativeModelPath;
+            modelName_ = Path.GetFileName(relativeModelPath);
+            ProcessObj(relativeModelPath);
+
+            ComputeNormalsIfNeeded();
+            //ComputeTangents();
+
+            GetUniformLocations();
+            SendUniforms();
+        }
+
         public InstancedMesh(InstancedVAO vao, VBO vbo, int shaderProgramId, string modelName, ModelData model, string texturePath, Vector2 windowSize, ref Camera camera, ref Object parentObject) : base(vao.id, vbo.id, shaderProgramId)
         {
             this.parentObject = parentObject;

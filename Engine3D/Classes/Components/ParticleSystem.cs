@@ -138,14 +138,14 @@ namespace Engine3D
         private List<Particle> particles = new List<Particle>();
 
         public InstancedMesh mesh;
-        private Object parentObject;
+        public Object parentObject;
         public bool useTexture;
 
-        private InstancedVAO instancedMeshVao;
-        private VBO instancedMeshVbo;
-        private int shaderProgramId;
-        private Vector2 windowSize;
-        private Camera camera;
+        public InstancedVAO instancedMeshVao;
+        public VBO instancedMeshVbo;
+        public int shaderProgramId;
+        public Vector2 windowSize;
+        public Camera camera;
 
         public string[] showMeshTypeList = new string[0];
         public int showMeshTypeListIndex = 0;

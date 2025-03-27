@@ -54,6 +54,7 @@ namespace Engine3D
                     {
                         if (payload.NativePtr != null)
                         {
+                            // TODO
                             byte[] pathBytes = new byte[payload.DataSize];
                             System.Runtime.InteropServices.Marshal.Copy(payload.Data, pathBytes, 0, payload.DataSize);
                             baseMesh.modelPath = GetStringFromByte(pathBytes);

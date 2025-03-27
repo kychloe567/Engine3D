@@ -84,8 +84,11 @@ namespace Engine3D
                             {
                                 byte[] pathBytes = new byte[payload.DataSize];
                                 System.Runtime.InteropServices.Marshal.Copy(payload.Data, pathBytes, 0, payload.DataSize);
-                                ps.mesh.modelPath = GetStringFromByte(pathBytes);
-                                CopyDataToBuffer("##meshPath", Encoding.UTF8.GetBytes(ps.mesh.modelPath));
+                                string modelPath = GetStringFromByte(pathBytes);
+                                ps.mesh = new InstancedMesh(ps.instancedMeshVao, ps.instancedMeshVbo, ps.shaderProgramId, FileManager.GetPathAfterAssetFolder(modelPath), ps.windowSize, ref ps.camera, ref ps.parentObject);
+                                ps.mesh.modelPath = modelPath;
+
+                                CopyDataToBuffer("##meshPath", Encoding.UTF8.GetBytes(ps.mesh.modelName));
                             }
                         }
                         ImGui.EndDragDropTarget();
