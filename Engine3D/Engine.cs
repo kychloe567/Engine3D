@@ -133,6 +133,7 @@ namespace Engine3D
         #endregion
 
         #region Editor moving
+        public bool editorMenuOpen = false;
         private float deltaX;
         private float deltaY;
         private Vector3? previousMouseWorldPos;

@@ -109,7 +109,7 @@ namespace Engine3D
                         #endregion
 
                         #region Object selection
-                        if (!axisClicked && objectMovingAxis == null)
+                        if (!axisClicked && objectMovingAxis == null && !editorMenuOpen)
                         {
                             if (pixel.objectId != 0 && objects.Count > 0)
                             {

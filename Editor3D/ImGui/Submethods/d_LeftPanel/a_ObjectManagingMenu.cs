@@ -13,11 +13,13 @@ namespace Engine3D
         {
             if (ImGui.BeginPopupContextWindow("objectManagingMenu", ImGuiPopupFlags.MouseButtonRight))
             {
+                engine.editorMenuOpen = true;
                 if (ImGui.MenuItem("Empty Object"))
                 {
                     engine.AddObject(ObjectType.Empty);
                     shouldOpenTreeNodeMeshes = true;
                     editorData.recalculateObjects = true;
+                    engine.editorMenuOpen = false;
                 }
                 if (ImGui.BeginMenu("3D Object"))
                 {
@@ -26,30 +28,35 @@ namespace Engine3D
                         engine.AddObject(ObjectType.Cube);
                         shouldOpenTreeNodeMeshes = true;
                         editorData.recalculateObjects = true;
+                        engine.editorMenuOpen = false;
                     }
                     if (ImGui.MenuItem("Sphere"))
                     {
                         engine.AddObject(ObjectType.Sphere);
                         shouldOpenTreeNodeMeshes = true;
                         editorData.recalculateObjects = true;
+                        engine.editorMenuOpen = false;
                     }
                     if (ImGui.MenuItem("Capsule"))
                     {
                         engine.AddObject(ObjectType.Capsule);
                         shouldOpenTreeNodeMeshes = true;
                         editorData.recalculateObjects = true;
+                        engine.editorMenuOpen = false;
                     }
                     if (ImGui.MenuItem("Plane"))
                     {
                         engine.AddObject(ObjectType.Plane);
                         shouldOpenTreeNodeMeshes = true;
                         editorData.recalculateObjects = true;
+                        engine.editorMenuOpen = false;
                     }
                     if (ImGui.MenuItem("Mesh"))
                     {
                         engine.AddObject(ObjectType.TriangleMesh);
                         shouldOpenTreeNodeMeshes = true;
                         editorData.recalculateObjects = true;
+                        engine.editorMenuOpen = false;
                     }
 
                     ImGui.EndMenu();
@@ -59,12 +66,14 @@ namespace Engine3D
                     engine.AddParticleSystem();
                     shouldOpenTreeNodeMeshes = true;
                     editorData.recalculateObjects = true;
+                    engine.editorMenuOpen = false;
                 }
                 if (ImGui.MenuItem("Audio emitter"))
                 {
                     engine.AddObject(ObjectType.AudioEmitter);
                     shouldOpenTreeNodeMeshes = true;
                     editorData.recalculateObjects = true;
+                    engine.editorMenuOpen = false;
                 }
                 if (ImGui.BeginMenu("Lighting"))
                 {
@@ -73,12 +82,14 @@ namespace Engine3D
                         engine.AddLight(Light.LightType.PointLight);
                         shouldOpenTreeNodeMeshes = true;
                         editorData.recalculateObjects = true;
+                        engine.editorMenuOpen = false;
                     }
                     if (ImGui.MenuItem("Directional Light"))
                     {
                         engine.AddLight(Light.LightType.DirectionalLight);
                         shouldOpenTreeNodeMeshes = true;
                         editorData.recalculateObjects = true;
+                        engine.editorMenuOpen = false;
                     }
 
                     ImGui.EndMenu();

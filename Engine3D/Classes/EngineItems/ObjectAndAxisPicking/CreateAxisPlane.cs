@@ -145,6 +145,7 @@ namespace Engine3D
                         objectMovingOrig = pos;
                     }
                 }
+                previousMouseWorldPos = null;
             }
         }
     }
