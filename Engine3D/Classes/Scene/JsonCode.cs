@@ -542,6 +542,10 @@ namespace Engine3D
                 {
                     serializer.Serialize(writer, comp, typeof(IComponent));
                 }
+                else if(comp is ParticleSystem ps)
+                {
+                    serializer.Serialize(writer, comp, typeof(IComponent));
+                }
             }
             writer.WriteEndArray();
         }

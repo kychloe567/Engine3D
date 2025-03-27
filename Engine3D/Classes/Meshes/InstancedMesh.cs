@@ -46,6 +46,11 @@ namespace Engine3D
 
         public List<InstancedMeshData> instancedData = new List<InstancedMeshData>();
 
+        public InstancedMesh() : base()
+        {
+            ;
+        }
+
         public InstancedMesh(InstancedVAO vao, VBO vbo, int shaderProgramId, string relativeModelPath, string texturePath, Vector2 windowSize, ref Camera camera, ref Object parentObject) : base(vao.id, vbo.id, shaderProgramId)
         {
             this.parentObject = parentObject;
@@ -193,6 +198,13 @@ namespace Engine3D
                 uniformLocations.Clear();
                 GetUniformLocations();
             }
+
+            // I WAS HERE
+            // in nsight, it cannot get uniform locations
+            //Engine.consoleManager.AddLog(shaderProgramId.ToString() + " " + uniformLocations["modelMatrix"], LogType.Message);
+            uniformLocations.Clear();
+            GetUniformLocations();
+            //Engine.consoleManager.AddLog(shaderProgramId.ToString() + " " + uniformLocations["modelMatrix"] + "\n\n", LogType.Message);
 
             GL.UniformMatrix4(uniformLocations["modelMatrix"], true, ref modelMatrix);
             GL.UniformMatrix4(uniformLocations["viewMatrix"], true, ref viewMatrix);

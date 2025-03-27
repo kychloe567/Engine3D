@@ -1,4 +1,5 @@
-﻿using OpenTK.Mathematics;
+﻿using Newtonsoft.Json;
+using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -138,6 +139,7 @@ namespace Engine3D
         private List<Particle> particles = new List<Particle>();
 
         public InstancedMesh mesh;
+        [JsonIgnore]
         public Object parentObject;
         public bool useTexture;
 
@@ -149,6 +151,11 @@ namespace Engine3D
 
         public string[] showMeshTypeList = new string[0];
         public int showMeshTypeListIndex = 0;
+
+        public ParticleSystem()
+        {
+
+        }
 
         public ParticleSystem(InstancedVAO instancedMeshVao, VBO instancedMeshVbo, int shaderProgramId, Vector2 windowSize, ref Camera camera, ref Object parentObject)
         {

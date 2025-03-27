@@ -549,6 +549,20 @@ namespace Engine3D
                         light.camera = mainCamera;
                         light.RecalculateShadows();
                     }
+                    else if (comp is ParticleSystem ps)
+                    {
+                        ps.camera = mainCamera;
+                        ps.parentObject = obj;
+
+                        ps.mesh.camera = mainCamera;
+                        ps.mesh.parentObject = obj;
+                        if (ps.mesh.modelPath != "" && ps.mesh.modelPath != null)
+                            ps.mesh.modelName = ps.mesh.modelPath;
+
+                        ps.mesh.RecalculateModelMatrix(new bool[] { true, true, true });
+                        ps.mesh.recalculate = true;
+                    }
+
                 }
             }
 
