@@ -20,6 +20,7 @@ namespace Engine3D
             {
                 deltaX = MouseState.X - lastPos.X;
                 deltaY = MouseState.Y - lastPos.Y;
+
                 if (deltaX != 0 || deltaY != 0)
                 {
                     lastPos = new Vector2(MouseState.X, MouseState.Y);

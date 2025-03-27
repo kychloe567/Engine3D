@@ -135,6 +135,7 @@ namespace Engine3D
         #region Editor moving
         private float deltaX;
         private float deltaY;
+        private Vector3? previousMouseWorldPos;
         private Vector2 lastPos;
         private bool firstMove = true;
         private float sensitivity = 130;

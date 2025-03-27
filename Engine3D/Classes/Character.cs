@@ -13,6 +13,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
+using Assimp.Unmanaged;
 
 namespace Engine3D
 {

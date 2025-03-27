@@ -309,18 +309,35 @@ namespace Engine3D
                     }
                     else
                     {
-                        // TODO 
-                        if (objectMovingAxis == Axis.X)
+                        Vector3 dir = mainCamera.GetCameraRay(MouseState.Position);
+                        Vector3? _pos = objectMovingPlane.RayPlaneIntersection(mainCamera.GetPosition(), dir);
+
+
+                        if (_pos != null)
                         {
-                            o.transformation.Scale = o.transformation.Scale - new Vector3(deltaX / 10, 0, 0);
-                        }
-                        else if (objectMovingAxis == Axis.Y)
-                        {
-                            o.transformation.Scale = o.transformation.Scale - new Vector3(0, deltaY / 10, 0);
-                        }
-                        else if (objectMovingAxis == Axis.Z)
-                        {
-                            o.transformation.Scale = o.transformation.Scale + new Vector3(0, 0, deltaX / 10);
+                            if (previousMouseWorldPos.HasValue)
+                            {
+                                Vector3 deltaWorld = _pos.Value - previousMouseWorldPos.Value;
+
+                                // Scale based on the selected axis
+                                if (objectMovingAxis == Axis.X)
+                                {
+                                    float scaleDelta = Vector3.Dot(deltaWorld, Vector3.UnitX);
+                                    o.transformation.Scale += new Vector3(scaleDelta, 0, 0);
+                                }
+                                else if (objectMovingAxis == Axis.Y)
+                                {
+                                    float scaleDelta = Vector3.Dot(deltaWorld, Vector3.UnitY);
+                                    o.transformation.Scale += new Vector3(0, scaleDelta, 0);
+                                }
+                                else if (objectMovingAxis == Axis.Z)
+                                {
+                                    float scaleDelta = Vector3.Dot(deltaWorld, Vector3.UnitZ);
+                                    o.transformation.Scale += new Vector3(0, 0, scaleDelta);
+                                }
+                            }
+
+                            previousMouseWorldPos = _pos;
                         }
                     }
 
