@@ -341,7 +341,7 @@ void main()
         }
     }
 
-    FragColor = vec4(result, 1.0) * gsFragColor;
+     FragColor = vec4(result, 1.0) * gsFragColor;
     if(useTexture == 1)
     {
         FragColor = texture(textureSampler, gsFragTexCoord) * vec4(result, 1.0) * gsFragColor;

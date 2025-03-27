@@ -1426,7 +1426,7 @@ namespace Engine3D
             return modelData;
         }
 
-        public static ModelData GetUnitSphere(float radius = 1, int resolution = 10,
+        public static ModelData GetUnitSphere(float radius = 1, int resolution = 20,
                                       float r = 1.0f, float g = 1.0f, float b = 1.0f, float a = 1.0f)
         {
             Color4D c = new Color4D(r, g, b, a);
@@ -1485,10 +1485,11 @@ namespace Engine3D
             {
                 for (int j = 0; j < resolution; j++)
                 {
-                    float u1 = i / (float)resolution * MathF.PI * 2;
-                    float u2 = (i + 1) / (float)resolution * MathF.PI * 2;
-                    float v1 = j / (float)resolution * MathF.PI;
-                    float v2 = (j + 1) / (float)resolution * MathF.PI;
+                    // Wrap around longitude to prevent seams
+                    float u1 = (float)i / resolution * MathF.PI * 2;
+                    float u2 = (i == resolution - 1) ? 0 : (float)(i + 1) / resolution * MathF.PI * 2;
+                    float v1 = (float)j / resolution * MathF.PI;
+                    float v2 = (float)(j + 1) / resolution * MathF.PI;
 
                     // Vertex positions
                     Vector3D p1 = new Vector3D(
@@ -1513,13 +1514,19 @@ namespace Engine3D
 
                     // Texture coordinates (u, v)
                     Vector3D uv1 = new Vector3D(i / (float)resolution, j / (float)resolution, 0);
-                    Vector3D uv2 = new Vector3D((i + 1) / (float)resolution, j / (float)resolution, 0);
+                    Vector3D uv2 = (i == resolution - 1)
+                        ? new Vector3D(1, j / (float)resolution, 0)  // Wrap UV at the seam
+                        : new Vector3D((i + 1) / (float)resolution, j / (float)resolution, 0);
                     Vector3D uv3 = new Vector3D(i / (float)resolution, (j + 1) / (float)resolution, 0);
-                    Vector3D uv4 = new Vector3D((i + 1) / (float)resolution, (j + 1) / (float)resolution, 0);
+                    Vector3D uv4 = (i == resolution - 1)
+                        ? new Vector3D(1, (j + 1) / (float)resolution, 0)
+                        : new Vector3D((i + 1) / (float)resolution, (j + 1) / (float)resolution, 0);
 
                     // Add two triangles for each quad
-                    AddTriangle(p1, p2, p3, uv1, uv2, uv3); // First triangle
-                    AddTriangle(p2, p4, p3, uv2, uv4, uv3); // Second triangle
+                    if (j != 0)
+                        AddTriangle(p1, p2, p3, uv1, uv2, uv3); // First triangle
+                    if(j != resolution-1)
+                        AddTriangle(p2, p4, p3, uv2, uv4, uv3); // Second triangle
                 }
             }
 
@@ -1548,15 +1555,13 @@ namespace Engine3D
         }
 
         public static ModelData GetUnitCapsule(float radius = 0.5f, float halfHeight = 0.5f, int resolution = 10,
-                                       float r = 1.0f, float g = 1.0f, float b = 1.0f, float a = 1.0f)
+                               float r = 1.0f, float g = 1.0f, float b = 1.0f, float a = 1.0f)
         {
             Color4D color = new Color4D(r, g, b, a);
 
-            // Validate inputs
             if (radius <= 0 || resolution < 3)
                 throw new ArgumentException("Invalid radius or resolution.");
 
-            // Create Assimp Mesh for the capsule
             Assimp.Mesh assimpMesh = new Assimp.Mesh(Assimp.PrimitiveType.Triangle);
 
             List<Vector3D> vertices = new List<Vector3D>();
@@ -1565,7 +1570,6 @@ namespace Engine3D
             List<Color4D> vertexColors = new List<Color4D>();
             List<Vector3D> texCoords = new List<Vector3D>();
 
-            // Helper method to add vertices, normals, colors, texCoords, and indices to the mesh
             void AddTriangle(Vector3D p1, Vector3D p2, Vector3D p3, Vector3D uv1, Vector3D uv2, Vector3D uv3)
             {
                 vertices.Add(p1);
@@ -1584,15 +1588,15 @@ namespace Engine3D
                 normals.Add(normal2);
                 normals.Add(normal3);
 
-                vertexColors.Add(color); // Add vertex color for p1
-                vertexColors.Add(color); // Add vertex color for p2
-                vertexColors.Add(color); // Add vertex color for p3
+                vertexColors.Add(color);
+                vertexColors.Add(color);
+                vertexColors.Add(color);
 
-                texCoords.Add(uv1); // Add texture coordinates for p1
-                texCoords.Add(uv2); // Add texture coordinates for p2
-                texCoords.Add(uv3); // Add texture coordinates for p3
+                texCoords.Add(uv1);
+                texCoords.Add(uv2);
+                texCoords.Add(uv3);
 
-                indices.Add(vertices.Count - 3); // Add indices for the new triangle
+                indices.Add(vertices.Count - 3);
                 indices.Add(vertices.Count - 2);
                 indices.Add(vertices.Count - 1);
             }
@@ -1600,14 +1604,15 @@ namespace Engine3D
             // Generate the top and bottom hemispheres
             for (int i = 0; i < resolution; i++)
             {
-                for (int j = 0; j < resolution / 2; j++) // Only half the resolution for hemispheres
+                for (int j = 0; j < resolution / 2; j++)
                 {
-                    float u1 = i / (float)resolution * MathF.PI * 2;
-                    float u2 = (i + 1) / (float)resolution * MathF.PI * 2;
-                    float v1 = j / (float)resolution * MathF.PI;
-                    float v2 = (j + 1) / (float)resolution * MathF.PI;
+                    float u1 = (float)i / resolution * MathF.PI * 2;
+                    float u2 = (i == resolution - 1) ? 0 : (float)(i + 1) / resolution * MathF.PI * 2;
+                    float v1 = (float)j / resolution * MathF.PI;
+                    float v2 = (float)(j + 1) / resolution * MathF.PI;
 
-                    // Top hemisphere
+                    bool isTransitionRow = (j == resolution / 2 - 1);
+
                     Vector3D p1 = new Vector3D(
                         halfHeight + radius * MathF.Cos(v1),
                         radius * MathF.Sin(v1) * MathF.Cos(u1),
@@ -1628,23 +1633,36 @@ namespace Engine3D
                         radius * MathF.Sin(v2) * MathF.Cos(u2),
                         radius * MathF.Sin(v2) * MathF.Sin(u2));
 
-                    // Texture coordinates (u, v)
-                    Vector3D uv1 = new Vector3D(i / (float)resolution, j / (float)resolution, 0);
-                    Vector3D uv2 = new Vector3D((i + 1) / (float)resolution, j / (float)resolution, 0);
-                    Vector3D uv3 = new Vector3D(i / (float)resolution, (j + 1) / (float)resolution, 0);
-                    Vector3D uv4 = new Vector3D((i + 1) / (float)resolution, (j + 1) / (float)resolution, 0);
+                    if (isTransitionRow)
+                    {
+                        p3 = new Vector3D(halfHeight, p3.Y, p3.Z);
+                        p4 = new Vector3D(halfHeight, p4.Y, p4.Z);
+                    }
 
-                    AddTriangle(p1, p3, p2, uv1, uv3, uv2); // First triangle
-                    AddTriangle(p2, p3, p4, uv2, uv3, uv4); // Second triangle
+                    float u1_norm = i / (float)resolution;
+                    float u2_norm = (i + 1) / (float)resolution;
+                    float v1_norm = j / (float)(resolution / 2);
+                    float v2_norm = (j + 1) / (float)(resolution / 2);
 
-                    // Bottom hemisphere (invert the X-coordinates)
+                    Vector3D uv1 = new Vector3D(u1_norm, v1_norm, 0);
+                    Vector3D uv2 = new Vector3D(u2_norm, v1_norm, 0);
+                    Vector3D uv3 = new Vector3D(u1_norm, v2_norm, 0);
+                    Vector3D uv4 = new Vector3D(u2_norm, v2_norm, 0);
+
+                    if (j != 0)
+                        AddTriangle(p1, p3, p2, uv1, uv3, uv2);
+                    if (j != resolution - 1)
+                        AddTriangle(p2, p3, p4, uv2, uv3, uv4);
+
                     Vector3D p1b = new Vector3D(-p1.X, p1.Y, p1.Z);
                     Vector3D p2b = new Vector3D(-p2.X, p2.Y, p2.Z);
                     Vector3D p3b = new Vector3D(-p3.X, p3.Y, p3.Z);
                     Vector3D p4b = new Vector3D(-p4.X, p4.Y, p4.Z);
 
-                    AddTriangle(p1b, p2b, p3b, uv1, uv2, uv3); // First bottom triangle
-                    AddTriangle(p2b, p4b, p3b, uv2, uv4, uv3); // Second bottom triangle
+                    if (j != 0)
+                        AddTriangle(p1b, p2b, p3b, uv1, uv2, uv3);
+                    if (j != resolution - 1)
+                        AddTriangle(p2b, p4b, p3b, uv2, uv4, uv3);
                 }
             }
 
@@ -1652,31 +1670,32 @@ namespace Engine3D
             for (int i = 0; i < resolution; i++)
             {
                 float u1 = i / (float)resolution * MathF.PI * 2;
-                float u2 = (i + 1) / (float)resolution * MathF.PI * 2;
+                float u2 = (i == resolution - 1) ? 0 : (i + 1) / (float)resolution * MathF.PI * 2;
 
-                // Creating vertices for the cylinder
                 Vector3D p1 = new Vector3D(halfHeight, radius * MathF.Cos(u1), radius * MathF.Sin(u1));
                 Vector3D p2 = new Vector3D(halfHeight, radius * MathF.Cos(u2), radius * MathF.Sin(u2));
-                Vector3D p3 = new Vector3D(-halfHeight, p1.Y, p1.Z);
-                Vector3D p4 = new Vector3D(-halfHeight, p2.Y, p2.Z);
+                Vector3D p3 = new Vector3D(-halfHeight, radius * MathF.Cos(u1), radius * MathF.Sin(u1));
+                Vector3D p4 = new Vector3D(-halfHeight, radius * MathF.Cos(u2), radius * MathF.Sin(u2));
 
-                // Texture coordinates for cylinder segment
+                Vector3D normal1 = new Vector3D(0, p1.Y, p1.Z); normal1.Normalize();
+                Vector3D normal2 = new Vector3D(0, p2.Y, p2.Z); normal2.Normalize();
+                Vector3D normal3 = new Vector3D(0, p3.Y, p3.Z); normal3.Normalize();
+                Vector3D normal4 = new Vector3D(0, p4.Y, p4.Z); normal4.Normalize();
+
                 Vector3D uv1 = new Vector3D(i / (float)resolution, 0, 0);
                 Vector3D uv2 = new Vector3D((i + 1) / (float)resolution, 0, 0);
                 Vector3D uv3 = new Vector3D(i / (float)resolution, 1, 0);
                 Vector3D uv4 = new Vector3D((i + 1) / (float)resolution, 1, 0);
 
-                AddTriangle(p1, p3, p2, uv1, uv3, uv2); // First triangle for the cylinder
-                AddTriangle(p2, p3, p4, uv2, uv3, uv4); // Second triangle for the cylinder
+                AddTriangle(p1, p3, p2, uv1, uv3, uv2);
+                AddTriangle(p2, p3, p4, uv2, uv3, uv4);
             }
 
-            // Populate Assimp mesh with vertices, normals, colors, and texCoords
             assimpMesh.Vertices.AddRange(vertices);
             assimpMesh.Normals.AddRange(normals);
             assimpMesh.VertexColorChannels[0].AddRange(vertexColors);
             assimpMesh.TextureCoordinateChannels[0].AddRange(texCoords);
 
-            // Add faces
             for (int i = 0; i < indices.Count; i += 3)
             {
                 Face face = new Face();
@@ -1686,13 +1705,13 @@ namespace Engine3D
                 assimpMesh.Faces.Add(face);
             }
 
-            // Create a new ModelData object and add the Assimp mesh to it
             ModelData modelData = new ModelData();
             modelData.meshes.Add(new MeshData(assimpMesh));
             modelData.meshes[0].CalculateGroupedIndices();
 
             return modelData;
         }
+
 
         #endregion
 
