@@ -82,6 +82,14 @@ namespace Engine3D
         }
     }
 
+    public enum ShowParticleMeshType
+    {
+        Cube,
+        Sphere,
+        Capsule,
+        Custom
+    }
+
     public class ParticleSystem : IComponent
     {
         public float duration = 5;
@@ -129,15 +137,37 @@ namespace Engine3D
 
         private List<Particle> particles = new List<Particle>();
 
-        private InstancedMesh mesh;
+        public InstancedMesh mesh;
         private Object parentObject;
+        public bool useTexture;
+
+        private InstancedVAO instancedMeshVao;
+        private VBO instancedMeshVbo;
+        private int shaderProgramId;
+        private Vector2 windowSize;
+        private Camera camera;
+
+        public string[] showMeshTypeList = new string[0];
+        public int showMeshTypeListIndex = 0;
 
         public ParticleSystem(InstancedVAO instancedMeshVao, VBO instancedMeshVbo, int shaderProgramId, Vector2 windowSize, ref Camera camera, ref Object parentObject)
         {
             mesh = new InstancedMesh(instancedMeshVao, instancedMeshVbo, shaderProgramId, "cube", BaseMesh.GetUnitCube(), windowSize, ref camera, ref parentObject);
             mesh.useShading = false;
 
+            this.instancedMeshVao = instancedMeshVao;
+            this.instancedMeshVbo = instancedMeshVbo;
+            this.shaderProgramId = shaderProgramId;
+            this.windowSize = windowSize;
+            this.camera = camera;
             this.parentObject = parentObject;
+
+            showMeshTypeList = Enum.GetNames(typeof(ShowParticleMeshType));
+        }
+
+        public void ChangeMesh(InstancedMesh newMesh)
+        {
+            mesh = newMesh;
         }
 
         private void UpdateParticleAndRemove(ref List<Particle> toRemove, Particle p, float delta)
@@ -249,7 +279,6 @@ namespace Engine3D
         public BaseMesh GetParentMesh()
         {
             List<InstancedMeshData> data = particles.Where(x => x != null).Select(x => x.meshData).ToList();
-            //data.Sort((x,y) => x)
 
             mesh.SetInstancedData(data);
 

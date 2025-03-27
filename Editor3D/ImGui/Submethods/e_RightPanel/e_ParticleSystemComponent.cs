@@ -30,6 +30,230 @@ namespace Engine3D
 
                 #region ParticleSystem
 
+                ImGui.Text("Mesh type");
+                if (ImGui.BeginCombo("##showMeshTypeDropdown", ps.showMeshTypeList[ps.showMeshTypeListIndex]))
+                {
+                    ImGui.Dummy(new System.Numerics.Vector2(0, 5));
+                    for (int i = 0; i < ps.showMeshTypeList.Length; i++)
+                    {
+                        bool isSelected = (i == ps.showMeshTypeListIndex);
+
+                        if (ImGui.Selectable(ps.showMeshTypeList[i], isSelected))
+                        {
+                            if (ps.showMeshTypeListIndex != i)
+                            {
+                                ps.showMeshTypeListIndex = i;
+                            }
+                        }
+
+                        if (isSelected)
+                        {
+                            ImGui.SetItemDefaultFocus();
+                        }
+                    }
+                    ImGui.Dummy(new System.Numerics.Vector2(0, 5));
+
+                    ImGui.EndCombo();
+                }
+
+                ImGui.Checkbox("##useShading", ref ps.mesh.useShading);
+                ImGui.SameLine();
+                ImGui.Text("Use shading");
+
+                if (ps.showMeshTypeListIndex == 3)
+                {
+                    #region Mesh
+
+                    ImGui.Separator();
+                    ImGui.Text("Mesh");
+
+                    Encoding.UTF8.GetBytes(ps.mesh.modelName, 0, ps.mesh.modelName.ToString().Length, _inputBuffers["##meshPath"], 0);
+                    ImGui.InputText("##meshPath", _inputBuffers["##meshPath"], (uint)_inputBuffers["##meshPath"].Length, ImGuiInputTextFlags.ReadOnly);
+                    if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
+                    {
+                        ps.mesh.modelName = "";
+                        _inputBuffers["##meshPath"][0] = 0;
+                    }
+
+                    if (ImGui.BeginDragDropTarget())
+                    {
+                        ImGuiPayloadPtr payload = ImGui.AcceptDragDropPayload("MESH_NAME");
+                        unsafe
+                        {
+                            if (payload.NativePtr != null)
+                            {
+                                byte[] pathBytes = new byte[payload.DataSize];
+                                System.Runtime.InteropServices.Marshal.Copy(payload.Data, pathBytes, 0, payload.DataSize);
+                                ps.mesh.modelPath = GetStringFromByte(pathBytes);
+                                CopyDataToBuffer("##meshPath", Encoding.UTF8.GetBytes(ps.mesh.modelPath));
+                            }
+                        }
+                        ImGui.EndDragDropTarget();
+                    }
+                    #endregion
+                }
+
+                ImGui.Checkbox("##useTexture", ref ps.useTexture);
+                ImGui.SameLine();
+                ImGui.Text("Use texture");
+                if (ps.useTexture)
+                {
+                    #region Textures
+                    ImGui.Text("Texture");
+                    Encoding.UTF8.GetBytes(ps.mesh.textureName, 0, ps.mesh.textureName.ToString().Length, _inputBuffers["##texturePath"], 0);
+                    ImGui.InputText("##texturePath", _inputBuffers["##texturePath"], (uint)_inputBuffers["##texturePath"].Length, ImGuiInputTextFlags.ReadOnly);
+                    if (ImGui.IsItemClicked(ImGuiMouseButton.Right) && ps.mesh.textureName != "")
+                    {
+                        ps.mesh.textureName = "";
+                        ClearBuffer("##texturePath");
+                    }
+
+                    if (ImGui.BeginDragDropTarget())
+                    {
+                        ImGuiPayloadPtr payload = ImGui.AcceptDragDropPayload("TEXTURE_NAME");
+                        unsafe
+                        {
+                            if (payload.NativePtr != null)
+                            {
+                                byte[] pathBytes = new byte[payload.DataSize];
+                                System.Runtime.InteropServices.Marshal.Copy(payload.Data, pathBytes, 0, payload.DataSize);
+                                ps.mesh.textureName = GetStringFromByte(pathBytes);
+                                CopyDataToBuffer("##texturePath", Encoding.UTF8.GetBytes(ps.mesh.textureName));
+                            }
+                        }
+                        ImGui.EndDragDropTarget();
+                    }
+
+                    if (ImGui.TreeNode("Custom textures"))
+                    {
+                        ImGui.Text("Normal Texture");
+                        Encoding.UTF8.GetBytes(ps.mesh.textureNormalName, 0, ps.mesh.textureNormalName.ToString().Length, _inputBuffers["##textureNormalPath"], 0);
+                        ImGui.InputText("##textureNormalPath", _inputBuffers["##textureNormalPath"], (uint)_inputBuffers["##textureNormalPath"].Length, ImGuiInputTextFlags.ReadOnly);
+                        if (ImGui.IsItemClicked(ImGuiMouseButton.Right) && ps.mesh.textureNormalName != "")
+                        {
+                            ps.mesh.textureNormalName = "";
+                            ClearBuffer("##textureNormalPath");
+                        }
+
+                        if (ImGui.BeginDragDropTarget())
+                        {
+                            ImGuiPayloadPtr payload = ImGui.AcceptDragDropPayload("TEXTURE_NAME");
+                            unsafe
+                            {
+                                if (payload.NativePtr != null)
+                                {
+                                    byte[] pathBytes = new byte[payload.DataSize];
+                                    System.Runtime.InteropServices.Marshal.Copy(payload.Data, pathBytes, 0, payload.DataSize);
+                                    ps.mesh.textureNormalName = GetStringFromByte(pathBytes);
+                                    CopyDataToBuffer("##textureNormalPath", Encoding.UTF8.GetBytes(ps.mesh.textureNormalName));
+                                }
+                            }
+                            ImGui.EndDragDropTarget();
+                        }
+                        ImGui.Text("Height Texture");
+                        Encoding.UTF8.GetBytes(ps.mesh.textureHeightName, 0, ps.mesh.textureHeightName.ToString().Length, _inputBuffers["##textureHeightPath"], 0);
+                        ImGui.InputText("##textureHeightPath", _inputBuffers["##textureHeightPath"], (uint)_inputBuffers["##textureHeightPath"].Length, ImGuiInputTextFlags.ReadOnly);
+                        if (ImGui.IsItemClicked(ImGuiMouseButton.Right) && ps.mesh.textureHeightName != "")
+                        {
+                            ps.mesh.textureHeightName = "";
+                            ClearBuffer("##textureHeightPath");
+                        }
+
+                        if (ImGui.BeginDragDropTarget())
+                        {
+                            ImGuiPayloadPtr payload = ImGui.AcceptDragDropPayload("TEXTURE_NAME");
+                            unsafe
+                            {
+                                if (payload.NativePtr != null)
+                                {
+                                    byte[] pathBytes = new byte[payload.DataSize];
+                                    System.Runtime.InteropServices.Marshal.Copy(payload.Data, pathBytes, 0, payload.DataSize);
+                                    ps.mesh.textureHeightName = GetStringFromByte(pathBytes);
+                                    CopyDataToBuffer("##textureHeightPath", Encoding.UTF8.GetBytes(ps.mesh.textureHeightName));
+                                }
+                            }
+                            ImGui.EndDragDropTarget();
+                        }
+                        ImGui.Text("AO Texture");
+                        Encoding.UTF8.GetBytes(ps.mesh.textureAOName, 0, ps.mesh.textureAOName.ToString().Length, _inputBuffers["##textureAOPath"], 0);
+                        ImGui.InputText("##textureAOPath", _inputBuffers["##textureAOPath"], (uint)_inputBuffers["##textureAOPath"].Length, ImGuiInputTextFlags.ReadOnly);
+                        if (ImGui.IsItemClicked(ImGuiMouseButton.Right) && ps.mesh.textureAOName != "")
+                        {
+                            ps.mesh.textureAOName = "";
+                            ClearBuffer("##textureAOPath");
+                        }
+
+                        if (ImGui.BeginDragDropTarget())
+                        {
+                            ImGuiPayloadPtr payload = ImGui.AcceptDragDropPayload("TEXTURE_NAME");
+                            unsafe
+                            {
+                                if (payload.NativePtr != null)
+                                {
+                                    byte[] pathBytes = new byte[payload.DataSize];
+                                    System.Runtime.InteropServices.Marshal.Copy(payload.Data, pathBytes, 0, payload.DataSize);
+                                    ps.mesh.textureAOName = GetStringFromByte(pathBytes);
+                                    CopyDataToBuffer("##textureAOPath", Encoding.UTF8.GetBytes(ps.mesh.textureAOName));
+                                }
+                            }
+                            ImGui.EndDragDropTarget();
+                        }
+                        ImGui.Text("Rough Texture");
+                        Encoding.UTF8.GetBytes(ps.mesh.textureRoughName, 0, ps.mesh.textureRoughName.ToString().Length, _inputBuffers["##textureRoughPath"], 0);
+                        ImGui.InputText("##textureRoughPath", _inputBuffers["##textureRoughPath"], (uint)_inputBuffers["##textureRoughPath"].Length, ImGuiInputTextFlags.ReadOnly);
+                        if (ImGui.IsItemClicked(ImGuiMouseButton.Right) && ps.mesh.textureName != "")
+                        {
+                            ps.mesh.textureRoughName = "";
+                            ClearBuffer("##textureRoughPath");
+                        }
+
+                        if (ImGui.BeginDragDropTarget())
+                        {
+                            ImGuiPayloadPtr payload = ImGui.AcceptDragDropPayload("TEXTURE_NAME");
+                            unsafe
+                            {
+                                if (payload.NativePtr != null)
+                                {
+                                    byte[] pathBytes = new byte[payload.DataSize];
+                                    System.Runtime.InteropServices.Marshal.Copy(payload.Data, pathBytes, 0, payload.DataSize);
+                                    ps.mesh.textureRoughName = GetStringFromByte(pathBytes);
+                                    CopyDataToBuffer("##textureRoughPath", Encoding.UTF8.GetBytes(ps.mesh.textureRoughName));
+                                }
+                            }
+                            ImGui.EndDragDropTarget();
+                        }
+                        ImGui.Text("Metal Texture");
+                        Encoding.UTF8.GetBytes(ps.mesh.textureMetalName, 0, ps.mesh.textureMetalName.ToString().Length, _inputBuffers["##textureMetalPath"], 0);
+                        ImGui.InputText("##textureMetalPath", _inputBuffers["##textureMetalPath"], (uint)_inputBuffers["##textureMetalPath"].Length, ImGuiInputTextFlags.ReadOnly);
+                        if (ImGui.IsItemClicked(ImGuiMouseButton.Right) && ps.mesh.textureMetalName != "")
+                        {
+                            ps.mesh.textureMetalName = "";
+                            ClearBuffer("##textureMetalPath");
+                        }
+
+                        if (ImGui.BeginDragDropTarget())
+                        {
+                            ImGuiPayloadPtr payload = ImGui.AcceptDragDropPayload("TEXTURE_NAME");
+                            unsafe
+                            {
+                                if (payload.NativePtr != null)
+                                {
+                                    byte[] pathBytes = new byte[payload.DataSize];
+                                    System.Runtime.InteropServices.Marshal.Copy(payload.Data, pathBytes, 0, payload.DataSize);
+                                    ps.mesh.textureMetalName = GetStringFromByte(pathBytes);
+                                    CopyDataToBuffer("##textureMetalPath", Encoding.UTF8.GetBytes(ps.mesh.textureMetalName));
+                                }
+                            }
+                            ImGui.EndDragDropTarget();
+                        }
+
+                        ImGui.TreePop();
+                    }
+                    #endregion
+                }
+
+                ImGui.Separator();
+
                 float[] emitTimeSecVec = new float[] { ps.emitTimeSec };
                 float emitTimeSec = InputFloat1("Emit Time(sec)", new string[] { "" }, emitTimeSecVec, ref keyboardState);
                 if (ps.emitTimeSec != emitTimeSec)
