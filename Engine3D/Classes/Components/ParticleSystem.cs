@@ -135,6 +135,7 @@ namespace Engine3D
         public ParticleSystem(InstancedVAO instancedMeshVao, VBO instancedMeshVbo, int shaderProgramId, Vector2 windowSize, ref Camera camera, ref Object parentObject)
         {
             mesh = new InstancedMesh(instancedMeshVao, instancedMeshVbo, shaderProgramId, "cube", BaseMesh.GetUnitCube(), windowSize, ref camera, ref parentObject);
+            mesh.useShading = false;
 
             this.parentObject = parentObject;
         }

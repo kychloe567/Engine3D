@@ -641,12 +641,12 @@ namespace Engine3D
             if (!colorPickerOpen.ContainsKey(title))
                 colorPickerOpen.Add(title, false);
 
-            System.Numerics.Vector3 colorv3 = new System.Numerics.Vector3(color.R, color.G, color.B);
+            System.Numerics.Vector4 colorv4 = new System.Numerics.Vector4(color.R, color.G, color.B, color.A);
             if (colorPickerOpen[title])
             {
-                if (ImGui.ColorPicker3(title, ref colorv3))
+                if (ImGui.ColorPicker4(title, ref colorv4))
                 {
-                    color = new Color4(colorv3.X, colorv3.Y, colorv3.Z, 1.0f);
+                    color = new Color4(colorv4.X, colorv4.Y, colorv4.Z, colorv4.W);
                 }
                 System.Numerics.Vector2 pickerMax = ImGui.GetItemRectMax();
                 System.Numerics.Vector2 pickerMin = ImGui.GetItemRectMin();
