@@ -39,6 +39,7 @@ namespace Engine3D
                                 if (ImGui.InputText("##name", _inputBuffers["##name"], (uint)_inputBuffers["##name"].Length))
                                 {
                                     o.name = GetStringFromBuffer("##name");
+                                    o.displayName = o.name;
                                 }
 
                                 TransformMenu(ref o, ref keyboardState);
