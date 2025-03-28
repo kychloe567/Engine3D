@@ -226,19 +226,6 @@ namespace Engine3D
             ResizeFramebuffer(gameWindowSize);
         }
 
-        public void SetRunParticles(bool value)
-        {
-            runParticles = value;
-        }
-
-        public void ResetParticles()
-        {
-            foreach (ParticleSystem ps in particleSystems)
-            {
-                ps.RemoveAllParticles();
-            }
-        }
-
         public int GetFps()
         {
             return fps.fps;
@@ -559,7 +546,7 @@ namespace Engine3D
                         if (ps.mesh.modelPath != "" && ps.mesh.modelPath != null)
                             ps.mesh.modelName = ps.mesh.modelPath;
 
-                        ps.mesh.RecalculateModelMatrix(new bool[] { true, true, true });
+                        ps.mesh.RecalculateModelMatrix(new bool[] { true, true, true }, onlyModelMatrix:true);
                         ps.mesh.recalculate = true;
                     }
 

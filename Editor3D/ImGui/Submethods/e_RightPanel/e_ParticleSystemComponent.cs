@@ -459,13 +459,12 @@ namespace Engine3D
                 var button = style.Colors[(int)ImGuiCol.Button];
                 style.Colors[(int)ImGuiCol.Button] = new System.Numerics.Vector4(0.0f, 0.0f, 0.0f, 0.0f);
 
-                if (!editorData.runParticles)
+                if (!ps.runParticles)
                 {
                     ImGui.SetCursorPosX((ImGui.GetWindowSize().X / 2.0f) - 10);
                     if (ImGui.ImageButton("##runParticlesStart", (IntPtr)engineData.textureManager.textures["ui_play.png"].TextureId, new System.Numerics.Vector2(20, 20)))
                     {
-                        editorData.runParticles = true;
-                        engine.SetRunParticles(true);
+                        ps.runParticles = true;
                     }
                 }
                 else
@@ -473,15 +472,13 @@ namespace Engine3D
                     ImGui.SetCursorPosX((ImGui.GetWindowSize().X / 2.0f) - 30);
                     if (ImGui.ImageButton("##runParticlesEnd", (IntPtr)engineData.textureManager.textures["ui_stop.png"].TextureId, new System.Numerics.Vector2(20, 20)))
                     {
-                        editorData.runParticles = false;
-                        engine.SetRunParticles(false);
-                        engine.ResetParticles();
+                        ps.runParticles = false;
+                        ps.RemoveAllParticles();
                     }
                     ImGui.SameLine();
                     if (ImGui.ImageButton("##runParticlesPause", (IntPtr)engineData.textureManager.textures["ui_pause.png"].TextureId, new System.Numerics.Vector2(20, 20)))
                     {
-                        engine.SetRunParticles(false);
-                        editorData.runParticles = false;
+                        ps.runParticles = false;
                     }
                 }
                 style.Colors[(int)ImGuiCol.Button] = button;

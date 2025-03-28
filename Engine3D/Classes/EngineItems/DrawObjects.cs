@@ -107,7 +107,7 @@ namespace Engine3D
                                 GL.StencilMask(0xFF);
                             }
 
-                            mesh.Draw(gameState, instancedShaderProgram, meshVbo, instancedMeshVbo, meshIbo); 
+                            mesh.Draw(gameState, instancedShaderProgram, instancedMeshVao, meshVbo, instancedMeshVbo, meshIbo); 
 
                             currentMeshType = typeof(InstancedMesh);
 
@@ -354,6 +354,7 @@ namespace Engine3D
                     }
                     else if (baseMesh.GetType() == typeof(InstancedMesh))
                     {
+                        continue;
                         throw new NotImplementedException();
                         //InstancedMesh mesh = (InstancedMesh)baseMesh;
                         //if (currentMeshType == null || currentMeshType != mesh.GetType())

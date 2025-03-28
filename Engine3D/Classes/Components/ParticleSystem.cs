@@ -1,8 +1,11 @@
 ﻿using Newtonsoft.Json;
 using OpenTK.Mathematics;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -136,6 +139,7 @@ namespace Engine3D
         public Color4 endColor = Color4.White;
         public bool randomColor = false;
 
+        [JsonIgnore]
         private List<Particle> particles = new List<Particle>();
 
         public InstancedMesh mesh;
@@ -149,6 +153,9 @@ namespace Engine3D
         public Vector2 windowSize;
         public Camera camera;
 
+        [JsonIgnore]
+        public bool runParticles = false;
+
         public string[] showMeshTypeList = new string[0];
         public int showMeshTypeListIndex = 0;
 
@@ -159,7 +166,8 @@ namespace Engine3D
 
         public ParticleSystem(InstancedVAO instancedMeshVao, VBO instancedMeshVbo, int shaderProgramId, Vector2 windowSize, ref Camera camera, ref Object parentObject)
         {
-            mesh = new InstancedMesh(instancedMeshVao, instancedMeshVbo, shaderProgramId, "cube", BaseMesh.GetUnitCube(), windowSize, ref camera, ref parentObject);
+            //mesh = new InstancedMesh(instancedMeshVao, instancedMeshVbo, shaderProgramId, "cube", BaseMesh.GetUnitCube(), windowSize, ref camera, ref parentObject);
+            mesh = new InstancedMesh(instancedMeshVao, instancedMeshVbo, shaderProgramId, FileManager.GetPathAfterAssetFolder("C:\\Users\\Chloe\\Desktop\\GitHubProjects\\Engine3D\\Editor3D\\bin\\Debug\\net8.0 - windows\\Assets\\Models\\cow.obj"), windowSize, ref camera, ref parentObject);
             mesh.useShading = false;
 
             this.instancedMeshVao = instancedMeshVao;

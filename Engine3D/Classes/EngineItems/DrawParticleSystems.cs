@@ -1,4 +1,5 @@
 ﻿using OpenTK.Graphics.OpenGL4;
+using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +21,7 @@ namespace Engine3D
 
                 InstancedMesh instMesh = (InstancedMesh)mesh;
 
-                instMesh.Draw(gameState, instancedShaderProgram, meshVbo, instancedMeshVbo, meshIbo);
+                instMesh.Draw(gameState, instancedShaderProgram, instancedMeshVao, meshVbo, instancedMeshVbo, meshIbo);
             }
             ////GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
         }

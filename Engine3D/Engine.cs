@@ -148,7 +148,6 @@ namespace Engine3D
 
         #region UI variables
         private GameState gameState = GameState.Stopped;
-        private bool runParticles = false;
         private Vector2 gizmoWindowPos = new Vector2();
         private Vector2 gizmoWindowSize = new Vector2();
         private bool UIHasMouse = false;
@@ -456,15 +455,23 @@ namespace Engine3D
                 }
 
 
-                if (gameState == GameState.Running || runParticles)
+                if (gameState == GameState.Running)
                 {
                     foreach (ParticleSystem ps in particleSystems)
                     {
                         ps.Update((float)args.Time);
                     }
                 }
+                else
+                {
+                    foreach (ParticleSystem ps in particleSystems)
+                    {
+                        if (ps.runParticles)
+                            ps.Update((float)args.Time);
+                    }
+                }
 
-                character.AfterUpdate(MouseState, args, gameState);
+                    character.AfterUpdate(MouseState, args, gameState);
 
                 if (fps.totalTime > 0 && gameState == GameState.Running)
                 {
@@ -705,6 +712,7 @@ namespace Engine3D
             sun.transformation.Position = new Vector3(0, 0, 0);
             sun.transformation.Rotation = Helper.QuaternionFromEuler(new Vector3(240, 0, 0));
             Light? sunComp = (Light?)sun.GetComponent<Light>();
+            sunComp.showGizmos = false;
             if (sunComp != null)
                 sunComp.RecalculateShadows();
 
@@ -880,6 +888,7 @@ namespace Engine3D
                 onLoadMethod.Invoke();
             }
         }
+
 
         protected override void OnTextInput(TextInputEventArgs e)
         {

@@ -190,6 +190,13 @@ namespace Engine3D
 
         protected override void SendUniforms()
         {
+            //if (Engine.GLState.currentShaderId != Engine.instancedShaderProgram.programId)
+            //{
+            //    GL.UseProgram(Engine.instancedShaderProgram.programId);
+            //    Engine.GLState.currentShaderId = Engine.instancedShaderProgram.programId;
+            //}
+            //shaderProgramId = Engine.instancedShaderProgram.programId;
+
             projectionMatrix = camera.projectionMatrix;
             viewMatrix = camera.viewMatrix;
 
@@ -198,13 +205,6 @@ namespace Engine3D
                 uniformLocations.Clear();
                 GetUniformLocations();
             }
-
-            // I WAS HERE
-            // in nsight, it cannot get uniform locations
-            //Engine.consoleManager.AddLog(shaderProgramId.ToString() + " " + uniformLocations["modelMatrix"], LogType.Message);
-            uniformLocations.Clear();
-            GetUniformLocations();
-            //Engine.consoleManager.AddLog(shaderProgramId.ToString() + " " + uniformLocations["modelMatrix"] + "\n\n", LogType.Message);
 
             GL.UniformMatrix4(uniformLocations["modelMatrix"], true, ref modelMatrix);
             GL.UniformMatrix4(uniformLocations["viewMatrix"], true, ref viewMatrix);
@@ -270,12 +270,12 @@ namespace Engine3D
             });
         }
 
-        public void Draw(GameState gameRunning, Shader shader, VBO vbo_, VBO instVbo_, IBO ibo_)
+        public void Draw(GameState gameRunning, Shader shader, InstancedVAO vao, VBO vbo_, VBO instVbo_, IBO ibo_)
         {
             if (!parentObject.isEnabled || model == null || model.meshes.Count == 0)
                 return;
 
-            Vao.Bind();
+            vao.Bind();
             shader.Use();
             SendUniforms();
 
@@ -348,6 +348,7 @@ namespace Engine3D
                 ibo_.Buffer(mesh.visibleIndices);
                 vbo_.Buffer(mesh.visibleVerticesData);
                 instVbo_.Buffer(instancedVertices);
+
                 GL.DrawElementsInstanced(PrimitiveType.Triangles, mesh.visibleIndices.Count, DrawElementsType.UnsignedInt, IntPtr.Zero, instancedData.Count());
             }
         }
