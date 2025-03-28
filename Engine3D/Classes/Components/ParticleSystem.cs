@@ -248,10 +248,6 @@ namespace Engine3D
             {
                 particles.Remove(r);
             });
-            //for (int i = 0; i < toRemove.Count(); i++)
-            //{
-            //    particles.Remove(toRemove[i]);
-            //}
 
             toRemove.Clear();
         }
