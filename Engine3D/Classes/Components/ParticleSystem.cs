@@ -166,7 +166,6 @@ namespace Engine3D
 
         public ParticleSystem(InstancedVAO instancedMeshVao, VBO instancedMeshVbo, int shaderProgramId, Vector2 windowSize, ref Camera camera, ref Object parentObject)
         {
-            //mesh = new InstancedMesh(instancedMeshVao, instancedMeshVbo, shaderProgramId, "cube", BaseMesh.GetUnitCube(), windowSize, ref camera, ref parentObject);
             mesh = new InstancedMesh(instancedMeshVao, instancedMeshVbo, shaderProgramId, FileManager.GetPathAfterAssetFolder("C:\\Users\\Chloe\\Desktop\\GitHubProjects\\Engine3D\\Editor3D\\bin\\Debug\\net8.0 - windows\\Assets\\Models\\cow.obj"), windowSize, ref camera, ref parentObject);
             mesh.useShading = false;
 
@@ -180,9 +179,24 @@ namespace Engine3D
             showMeshTypeList = Enum.GetNames(typeof(ShowParticleMeshType));
         }
 
-        public void ChangeMesh(InstancedMesh newMesh)
+        public void ChangeMesh()
         {
-            mesh = newMesh;
+            var useShading = mesh.useShading;
+            if (showMeshTypeListIndex == 0)
+            {
+                mesh = new InstancedMesh(instancedMeshVao, instancedMeshVbo, shaderProgramId, "cube", BaseMesh.GetUnitCube(), windowSize, ref camera, ref parentObject);
+                mesh.useShading = useShading;
+            }
+            else if (showMeshTypeListIndex == 1)
+            {
+                mesh = new InstancedMesh(instancedMeshVao, instancedMeshVbo, shaderProgramId, "sphere", BaseMesh.GetUnitSphere(), windowSize, ref camera, ref parentObject);
+                mesh.useShading = useShading;
+            }
+            else if (showMeshTypeListIndex == 2)
+            {
+                mesh = new InstancedMesh(instancedMeshVao, instancedMeshVbo, shaderProgramId, "capsule", BaseMesh.GetUnitCapsule(), windowSize, ref camera, ref parentObject);
+                mesh.useShading = useShading;
+            }
         }
 
         private void UpdateParticleAndRemove(ref List<Particle> toRemove, Particle p, float delta)
@@ -212,11 +226,14 @@ namespace Engine3D
 
         public void Update(float delta)
         {
-            time += delta;
-            if(time >= emitTimeSec)
+            if (mesh.model.meshes.Count != 0)
             {
-                time = 0;
-                AddNewParticle();
+                time += delta;
+                if (time >= emitTimeSec)
+                {
+                    time = 0;
+                    AddNewParticle();
+                }
             }
 
             List<Particle> toRemove = new List<Particle>();

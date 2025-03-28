@@ -29,15 +29,24 @@ namespace Engine3D
             get { return modelName_; }
             set
             {
-                string relativePath = AssetManager.GetRelativeModelsFolder(value);
-                modelPath = relativePath;
-                modelName_ = Path.GetFileName(modelPath);
-                ProcessObj(modelPath);
+                if (value == "")
+                {
+                    model.materials.Clear();
+                    model.meshes.Clear();
+                    modelName_ = "";
+                    modelPath = "";
+                }
+                else
+                {
+                    string relativePath = AssetManager.GetRelativeModelsFolder(value);
+                    modelPath = relativePath;
+                    modelName_ = Path.GetFileName(modelPath);
+                    ProcessObj(modelPath);
 
+                    ComputeNormalsIfNeeded();
 
-                ComputeNormalsIfNeeded();
-
-                ComputeTangents();
+                    ComputeTangents();
+                }
                 recalculate = true;
             }
         }

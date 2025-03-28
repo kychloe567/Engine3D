@@ -43,6 +43,14 @@ namespace Engine3D
                             if (ps.showMeshTypeListIndex != i)
                             {
                                 ps.showMeshTypeListIndex = i;
+
+                                if (ps.showMeshTypeListIndex == 3)
+                                {
+                                    ps.mesh.modelName = "";
+                                    _inputBuffers["##meshPath"][0] = 0;
+                                }
+                                else
+                                    ps.ChangeMesh();
                             }
                         }
 
@@ -63,7 +71,6 @@ namespace Engine3D
                 if (ps.showMeshTypeListIndex == 3)
                 {
                     #region Mesh
-
                     ImGui.Separator();
                     ImGui.Text("Mesh");
 
@@ -85,7 +92,9 @@ namespace Engine3D
                                 byte[] pathBytes = new byte[payload.DataSize];
                                 System.Runtime.InteropServices.Marshal.Copy(payload.Data, pathBytes, 0, payload.DataSize);
                                 string modelPath = GetStringFromByte(pathBytes);
+                                var useShading = ps.mesh.useShading;
                                 ps.mesh = new InstancedMesh(ps.instancedMeshVao, ps.instancedMeshVbo, ps.shaderProgramId, FileManager.GetPathAfterAssetFolder(modelPath), ps.windowSize, ref ps.camera, ref ps.parentObject);
+                                ps.mesh.useShading = useShading;
                                 ps.mesh.modelPath = modelPath;
 
                                 CopyDataToBuffer("##meshPath", Encoding.UTF8.GetBytes(ps.mesh.modelName));
