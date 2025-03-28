@@ -722,11 +722,6 @@ namespace Engine3D
             Light.SendToGPU(lights, shaderProgram.programId);
             Light.SendUBOToGPU(lights, lightUBO);
 
-            //test
-            LoadScene("C:\\Users\\Chloe\\Desktop\\GithubProjects\\Engine3D\\Engine3DSaves\\bugandoptSetup.proj");
-            gizmoManager = GetGizmoManager();
-            //test
-
             #region DebugLines
             // Projection matrix and mesh loading
 

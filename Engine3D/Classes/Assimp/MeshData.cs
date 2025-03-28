@@ -11,9 +11,9 @@ namespace Engine3D
 {
     public class MeshData
     {
-
-
         public Assimp.Mesh mesh;
+        [JsonIgnore]
+        public List<Vector3> openTKVertices = new List<Vector3>();
         [JsonIgnore]
         public List<float> visibleVerticesData = new List<float>();
         [JsonIgnore]
@@ -47,6 +47,8 @@ namespace Engine3D
             {
                 pis.Add(i);  // Store the index of each vertex
             }
+
+            mesh.Vertices.ForEach(vertex => openTKVertices.Add(AHelp.AssimpToOpenTK(vertex)));
 
             CalculateGroupedIndices();
             visibleVerticesData.AddRange(BaseMesh.GetMeshData(mesh));

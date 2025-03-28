@@ -6,6 +6,7 @@ using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -378,6 +379,7 @@ namespace Engine3D
         //private int desiredPercentage = 80;
         public static int threadSize = 32;
 
+        List<long> sws = new List<long>();
         protected BaseMesh()
         {
             
@@ -536,49 +538,56 @@ namespace Engine3D
                     }
                     else
                     {
+                        //00:00:00.1047377 (IsRunning = False)
+                        Stopwatch sw = new Stopwatch();
+                        sw.Start();
+                        ParallelOptions parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = threadSize };
                         foreach (MeshData mesh in model.meshes)
                         {
                             mesh.visibleIndices.Clear();
 
-                            ParallelOptions parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = threadSize };
                             Parallel.ForEach(mesh.groupedIndices, parallelOptions,
                             () => new List<uint>(),
                             (indices_, loopState, localIndices) =>
                             {
                                 if (modelMatrix != Matrix4.Identity)
                                 {
-                                    List<Vector3> p = new List<Vector3>()
-                                    {
-                                        AHelp.AssimpToOpenTK(mesh.mesh.Vertices[(int)indices_[0]]),
-                                        AHelp.AssimpToOpenTK(mesh.mesh.Vertices[(int)indices_[1]]),
-                                        AHelp.AssimpToOpenTK(mesh.mesh.Vertices[(int)indices_[2]])
-                                    };
-
                                     bool visible = false;
                                     for (int i = 0; i < 3; i++)
                                     {
                                         if (!globalPosition)
-                                            p[i] = Vector3.TransformPosition(AHelp.AssimpToOpenTK(mesh.mesh.Vertices[(int)indices_[i]]), modelMatrix);
-                                        if (camera.frustum.IsInside(p[i]) || camera.IsPointClose(p[i]))
                                         {
-                                            visible = true;
-                                            break;
+                                            Vector3 pi = Vector3.TransformPosition(mesh.openTKVertices[(int)indices_[i]], modelMatrix);
+                                            if (camera.frustum.IsInside(pi) || camera.IsPointClose(pi))
+                                            {
+                                                visible = true;
+                                                break;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if (camera.frustum.IsInside(mesh.openTKVertices[(int)indices_[i]]) || camera.IsPointClose(mesh.openTKVertices[(int)indices_[i]]))
+                                            {
+                                                visible = true;
+                                                break;
+                                            }
+
                                         }
                                     }
 
                                     if (!visible)
                                     {
-                                        if (camera.frustum.IsLineInside(new Line(p[0], p[1])))
+                                        if (camera.frustum.IsLineInside(new Line(mesh.openTKVertices[(int)indices_[0]], mesh.openTKVertices[(int)indices_[1]])))
                                             visible = true;
                                     }
                                     if (!visible)
                                     {
-                                        if (camera.frustum.IsLineInside(new Line(p[1], p[2])))
+                                        if (camera.frustum.IsLineInside(new Line(mesh.openTKVertices[(int)indices_[1]], mesh.openTKVertices[(int)indices_[2]])))
                                             visible = true;
                                     }
                                     if (!visible)
                                     {
-                                        if (camera.frustum.IsLineInside(new Line(p[0], p[2])))
+                                        if (camera.frustum.IsLineInside(new Line(mesh.openTKVertices[(int)indices_[0]], mesh.openTKVertices[(int)indices_[2]])))
                                             visible = true;
                                     }
 
@@ -597,17 +606,10 @@ namespace Engine3D
                                 }
                                 else
                                 {
-                                    List<Vector3> p = new List<Vector3>()
-                                    {
-                                        AHelp.AssimpToOpenTK(mesh.mesh.Vertices[(int)indices_[0]]),
-                                        AHelp.AssimpToOpenTK(mesh.mesh.Vertices[(int)indices_[1]]),
-                                        AHelp.AssimpToOpenTK(mesh.mesh.Vertices[(int)indices_[2]])
-                                    };
-
                                     bool visible = false;
                                     for (int i = 0; i < 3; i++)
                                     {
-                                        if (camera.frustum.IsInside(p[i]) || camera.IsPointClose(p[i]))
+                                        if (camera.frustum.IsInside(mesh.openTKVertices[(int)indices_[i]]) || camera.IsPointClose(mesh.openTKVertices[(int)indices_[i]]))
                                         {
                                             visible = true;
                                             break;
@@ -616,17 +618,17 @@ namespace Engine3D
 
                                     if (!visible)
                                     {
-                                        if (camera.frustum.IsLineInside(new Line(p[0], p[1])))
+                                        if (camera.frustum.IsLineInside(new Line(mesh.openTKVertices[(int)indices_[0]], mesh.openTKVertices[(int)indices_[1]])))
                                             visible = true;
                                     }
                                     if (!visible)
                                     {
-                                        if (camera.frustum.IsLineInside(new Line(p[1], p[2])))
+                                        if (camera.frustum.IsLineInside(new Line(mesh.openTKVertices[(int)indices_[1]], mesh.openTKVertices[(int)indices_[2]])))
                                             visible = true;
                                     }
                                     if (!visible)
                                     {
-                                        if (camera.frustum.IsLineInside(new Line(p[0], p[2])))
+                                        if (camera.frustum.IsLineInside(new Line(mesh.openTKVertices[(int)indices_[0]], mesh.openTKVertices[(int)indices_[2]])))
                                             visible = true;
                                     }
 
@@ -653,6 +655,11 @@ namespace Engine3D
                                 }
                             });
                         }
+
+                        sw.Stop();
+                        sws.Add(sw.ElapsedMilliseconds);
+                        var b = sws.Average();
+                        ;
                     }
                 }
             }

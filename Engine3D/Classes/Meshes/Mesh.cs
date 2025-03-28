@@ -548,38 +548,6 @@ namespace Engine3D
                     CalculateFrustumVisibility();
                 }
 
-                #region not working parallelization
-                //ParallelOptions parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = threadSize };
-                //Parallel.ForEach(uniqueVertices, parallelOptions,
-                //    () => new List<float>(),
-                //     (v, loopState, localVertices) =>
-                //     {
-                //         AddVertices(localVertices, v);
-                //         //if (tri.visibile)
-                //         //{
-                //         //    AddVertices(localVertices.LocalVertices1, tri);
-                //         //    if (parentObject.isSelected)
-                //         //    {
-                //         //        AddVerticesOnlyPos(localVertices.LocalVertices2, tri);
-                //         //    }
-                //         //}
-                //         return localVertices;
-                //     },
-                //     localVertices =>
-                //     {
-                //         lock (vertices)
-                //         {
-                //             vertices.AddRange(localVertices);
-                //         }
-                //         //if (parentObject.isSelected)
-                //         //{
-                //         //    lock (verticesOnlyPos)
-                //         //    {
-                //         //        verticesOnlyPos.AddRange(localVertices.LocalVertices2);
-                //         //    }
-                //         //}
-                //     });
-                #endregion
 
                 if (mesh.visibleIndices.Count == 0)
                     continue;
