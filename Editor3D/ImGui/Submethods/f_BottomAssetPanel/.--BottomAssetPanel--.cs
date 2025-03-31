@@ -45,14 +45,6 @@ namespace Engine3D
 
                     AssetStore(ref keyboardState, ref mouseState, ref imageSize);
 
-                    if (Engine.consoleManager.justAdded)
-                    {
-                        ImGui.SetTabItemClosed("Project");
-                        ImGui.SetTabItemClosed("Asset store");
-
-                        Engine.consoleManager.justAdded = false;
-                    }
-
                     ImGui.EndTabBar();
                 }
             }

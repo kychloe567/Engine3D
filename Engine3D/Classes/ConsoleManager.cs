@@ -43,8 +43,9 @@ namespace Engine3D
     {
         public List<Log> Logs = new List<Log>();
         public Dictionary<LogType, System.Numerics.Vector4> LogColors = new Dictionary<LogType, System.Numerics.Vector4>();
-        public bool justAdded = false;
         public ShowConsoleType showConsoleType = ShowConsoleType.WarningAndError;
+        public int warningCount = 0;
+        public int errorCount = 0;
 
         public ConsoleManager() 
         {
@@ -55,15 +56,18 @@ namespace Engine3D
 
         public void AddLog(string log, LogType logType = LogType.Message)
         {
+            if (logType == LogType.Warning)
+                warningCount++;
+            if (logType == LogType.Error)
+                errorCount++;
             Logs.Add(new Log(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - " + log, logType));
-            justAdded = true;
         }
 
         public void Clear()
         {
+            warningCount = 0;
+            errorCount = 0;
             Logs.Clear();
-            justAdded = true;
         }
-
     }
 }

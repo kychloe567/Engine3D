@@ -409,6 +409,8 @@ namespace Engine3D
             //}
             #endregion
 
+            consoleManager.AddLog("hellooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo", LogType.Error);
+
             foreach (var renderMethod in renderMethods)
             {
                 renderMethod.Invoke(args);
