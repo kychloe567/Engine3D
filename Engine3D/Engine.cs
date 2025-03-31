@@ -177,9 +177,9 @@ namespace Engine3D
         public Object? selectedObject;
         public static int objectID = 1;
 
-        public List<Object> objects = new List<Object>();
-        public List<Object> _meshObjects = new List<Object>();
-        public List<Object> _instObjects = new List<Object>();
+        public HookedList<Object> objects = new HookedList<Object>();
+        static public List<Object> _meshObjects = new List<Object>();
+        static public List<Object> _instObjects = new List<Object>();
 
         public Character character;
 
@@ -408,8 +408,6 @@ namespace Engine3D
             //    GL.Viewport(0, 0, (int)windowSize.X, (int)windowSize.Y);
             //}
             #endregion
-
-            consoleManager.AddLog("hellooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo", LogType.Error);
 
             foreach (var renderMethod in renderMethods)
             {
@@ -725,6 +723,22 @@ namespace Engine3D
             Light.SendUBOToGPU(lights, lightUBO);
 
             #region DebugLines
+            Object o3 = new Object(ObjectType.Cube);
+            o3.AddMesh(new InstancedMesh(instancedMeshVao, instancedMeshVbo, instancedShaderProgram.programId, "cube", BaseMesh.GetUnitCube(), windowSize, ref character.camera, ref o3));
+
+            for (int i = 0; i < 5; i++)
+            {
+                InstancedMeshData instData = new InstancedMeshData();
+                instData.Position = new Vector3(0, 0, 10 * i);
+                instData.Rotation = Quaternion.Identity;
+                instData.Scale = new Vector3(1, 1, 1);
+                instData.Color = Color4.Black;
+
+                var mesh = (InstancedMesh?)o3.GetComponent<InstancedMesh>();
+                mesh.instancedData.Add(instData);
+            }
+            objects.Add(o3);
+
             // Projection matrix and mesh loading
 
             //objects.Add(new Object(new Mesh(meshVao, meshVbo, shaderProgram.id, "spiro.obj", "High.png", windowSize, ref frustum, ref camera, ref textureCount), ObjectType.TriangleMeshWithCollider, ref physx));

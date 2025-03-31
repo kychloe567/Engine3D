@@ -16,6 +16,16 @@ using System.Security.Cryptography;
 
 namespace Engine3D
 {
+    public class HookedList<T> : List<T>
+    {
+        public new void Add(T item)
+        {
+            if (item is Object obj && obj.HasComponent<InstancedMesh>())
+                Engine._instObjects.Add(obj);
+
+            base.Add(item);
+        }
+    }
 
     public static class Helper
     {

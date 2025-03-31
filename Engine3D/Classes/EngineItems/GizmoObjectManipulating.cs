@@ -291,27 +291,40 @@ namespace Engine3D
                 {
                     if (gizmoManager.PerInstanceMove && gizmoManager.instIndex != -1 && o.GetComponent<BaseMesh>() is InstancedMesh instMesh)
                     {
-                        if (objectMovingAxis == Axis.X)
+                        Vector3 dir = mainCamera.GetCameraRay(MouseState.Position);
+                        Vector3? _pos = objectMovingPlane.RayPlaneIntersection(mainCamera.GetPosition(), dir);
+
+                        if (_pos != null)
                         {
-                            instMesh.instancedData[gizmoManager.instIndex].Scale =
-                                instMesh.instancedData[gizmoManager.instIndex].Scale - new Vector3(deltaX / 10, 0, 0);
-                        }
-                        else if (objectMovingAxis == Axis.Y)
-                        {
-                            instMesh.instancedData[gizmoManager.instIndex].Scale = 
-                                instMesh.instancedData[gizmoManager.instIndex].Scale - new Vector3(0, deltaY / 10, 0);
-                        }
-                        else if (objectMovingAxis == Axis.Z)
-                        {
-                            instMesh.instancedData[gizmoManager.instIndex].Scale = 
-                                instMesh.instancedData[gizmoManager.instIndex].Scale + new Vector3(0, 0, deltaX / 10);
+                            if (previousMouseWorldPos.HasValue)
+                            {
+                                Vector3 deltaWorld = _pos.Value - previousMouseWorldPos.Value;
+
+                                // Scale based on the selected axis
+                                if (objectMovingAxis == Axis.X)
+                                {
+                                    float scaleDelta = Vector3.Dot(deltaWorld, Vector3.UnitX);
+                                    instMesh.instancedData[gizmoManager.instIndex].Scale += new Vector3(scaleDelta, 0, 0);
+                                }
+                                else if (objectMovingAxis == Axis.Y)
+                                {
+                                    float scaleDelta = Vector3.Dot(deltaWorld, Vector3.UnitY);
+                                    instMesh.instancedData[gizmoManager.instIndex].Scale += new Vector3(0, scaleDelta, 0);
+                                }
+                                else if (objectMovingAxis == Axis.Z)
+                                {
+                                    float scaleDelta = Vector3.Dot(deltaWorld, Vector3.UnitZ);
+                                    instMesh.instancedData[gizmoManager.instIndex].Scale += new Vector3(0, 0, scaleDelta);
+                                }
+                            }
+
+                            previousMouseWorldPos = _pos;
                         }
                     }
                     else
                     {
                         Vector3 dir = mainCamera.GetCameraRay(MouseState.Position);
                         Vector3? _pos = objectMovingPlane.RayPlaneIntersection(mainCamera.GetPosition(), dir);
-
 
                         if (_pos != null)
                         {
