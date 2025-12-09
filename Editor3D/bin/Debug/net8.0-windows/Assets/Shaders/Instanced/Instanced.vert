@@ -92,7 +92,8 @@ void main()
 	vec4 rotatedVertex = pureRotationMatrix * scaleVertex;
     vec4 positionedVertex = transMatrix * rotatedVertex;
 
-	gl_Position = positionedVertex * modelMatrix * viewMatrix * projectionMatrix;
+	//gl_Position = positionedVertex * modelMatrix * viewMatrix * projectionMatrix;
+    gl_Position = projectionMatrix * viewMatrix * modelMatrix * positionedVertex;
 	vec4 fragPos4 = positionedVertex * modelMatrix;
 
     if(useBillboarding == 1)
@@ -109,7 +110,8 @@ void main()
 			vec4(0.0, 0.0, 0.0, 1.0)
 		);
 
-		gl_Position = positionedVertex * billboardMat * modelMatrix * viewMatrix * projectionMatrix;
+		//gl_Position = positionedVertex * billboardMat * modelMatrix * viewMatrix * projectionMatrix;
+        gl_Position = projectionMatrix * viewMatrix * modelMatrix * billboardMat * positionedVertex;
 		vec4 fragPos4 = positionedVertex * billboardMat * modelMatrix;
 	}
 

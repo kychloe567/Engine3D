@@ -18,7 +18,7 @@ namespace Engine3D
                     objectMovingAxis = Axis.X;
                     if (gizmoManager.AbsoluteMoving)
                     {
-                        if (gizmoManager.PerInstanceMove && gizmoManager.instIndex == -1 && selectedO.GetComponent<BaseMesh>() is InstancedMesh instMesh)
+                        if (gizmoManager.PerInstanceMove && gizmoManager.instIndex != -1 && selectedO.GetComponent<BaseMesh>() is InstancedMesh instMesh)
                         {
                             Vector3 instPos = ((InstancedMesh)instMesh).instancedData[gizmoManager.instIndex].Position;
                             objectMovingPlane = new Plane(new Vector3(0, 0, 1), selectedO.transformation.Position.Z + instPos.Z);
@@ -28,7 +28,7 @@ namespace Engine3D
                     }
                     else
                     {
-                        if (gizmoManager.PerInstanceMove && gizmoManager.instIndex == -1 && selectedO.GetComponent<BaseMesh>() is InstancedMesh instMesh)
+                        if (gizmoManager.PerInstanceMove && gizmoManager.instIndex != -1 && selectedO.GetComponent<BaseMesh>() is InstancedMesh instMesh)
                         {
                             Vector3 instPos = ((InstancedMesh)instMesh).instancedData[gizmoManager.instIndex].Position;
                             Quaternion instRot = ((InstancedMesh)instMesh).instancedData[gizmoManager.instIndex].Rotation;
@@ -73,12 +73,18 @@ namespace Engine3D
                     objectMovingAxis = Axis.Y;
                     if (gizmoManager.AbsoluteMoving)
                     {
-                        objectMovingPlane = new Plane(new Vector3(0, 0, 1), selectedO.transformation.Position.Z);
+                        if (gizmoManager.PerInstanceMove && gizmoManager.instIndex != -1 && selectedO.GetComponent<BaseMesh>() is InstancedMesh instMesh)
+                        {
+                            Vector3 instPos = ((InstancedMesh)instMesh).instancedData[gizmoManager.instIndex].Position;
+                            objectMovingPlane = new Plane(new Vector3(0, 0, 1), selectedO.transformation.Position.Z + instPos.Z);
+                        }
+                        else
+                            objectMovingPlane = new Plane(new Vector3(0, 0, 1), selectedO.transformation.Position.Z);
                     }
                     else
                     {
                         objectMovingPlane = new Plane(Vector3.Transform(new Vector3(0, 0, 1), selectedO.transformation.Rotation),
-                                          selectedO.transformation.Position);
+                                              selectedO.transformation.Position);
                     }
 
                     Vector3 dir = mainCamera.GetCameraRay(MouseState.Position);
@@ -112,7 +118,13 @@ namespace Engine3D
                     objectMovingAxis = Axis.Z;
                     if (gizmoManager.AbsoluteMoving)
                     {
-                        objectMovingPlane = new Plane(new Vector3(1, 0, 0), selectedO.transformation.Position.X);
+                        if (gizmoManager.PerInstanceMove && gizmoManager.instIndex != -1 && selectedO.GetComponent<BaseMesh>() is InstancedMesh instMesh)
+                        {
+                            Vector3 instPos = ((InstancedMesh)instMesh).instancedData[gizmoManager.instIndex].Position;
+                            objectMovingPlane = new Plane(new Vector3(1, 0, 0), selectedO.transformation.Position.X + instPos.X);
+                        }
+                        else
+                            objectMovingPlane = new Plane(new Vector3(1, 0, 0), selectedO.transformation.Position.X);
                     }
                     else
                     {

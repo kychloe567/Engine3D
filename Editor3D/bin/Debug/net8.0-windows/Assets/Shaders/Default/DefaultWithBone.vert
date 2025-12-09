@@ -46,7 +46,8 @@ void main()
         vec4 poseNormal = vec4(normalMatrix * inNormal, 0.0);
         localNormal += poseNormal * weights[i];
     }
-	gl_Position = localPos * modelMatrix * viewMatrix * projectionMatrix;
+	//gl_Position = localPos * modelMatrix * viewMatrix * projectionMatrix;
+	gl_Position = projectionMatrix * viewMatrix * modelMatrix * localPos;
 	vec3 transformedNormal = normalize(localNormal.xyz);
 
 	vec4 fragPos4 = position * modelMatrix;
@@ -65,7 +66,8 @@ void main()
 			vec4(0.0, 0.0, 0.0, 1.0)
 		);
 
-		gl_Position = position * billboardMat * modelMatrix * viewMatrix * projectionMatrix;
+		//gl_Position = position * billboardMat * modelMatrix * viewMatrix * projectionMatrix;
+		gl_Position = projectionMatrix * viewMatrix * modelMatrix * billboardMat * position;
 		fragPos4 = position * billboardMat * modelMatrix;
 	}
 

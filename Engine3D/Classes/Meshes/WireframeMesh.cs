@@ -66,9 +66,9 @@ namespace Engine3D
             projectionMatrix = camera.projectionMatrix;
             viewMatrix = camera.viewMatrix;
 
-            GL.UniformMatrix4(uniformLocations["modelMatrix"], true, ref modelMatrix);
-            GL.UniformMatrix4(uniformLocations["viewMatrix"], true, ref viewMatrix);
-            GL.UniformMatrix4(uniformLocations["projectionMatrix"], true, ref projectionMatrix);
+            GL.UniformMatrix4(uniformLocations["modelMatrix"], false, ref modelMatrix);
+            GL.UniformMatrix4(uniformLocations["viewMatrix"], false, ref viewMatrix);
+            GL.UniformMatrix4(uniformLocations["projectionMatrix"], false, ref projectionMatrix);
         }
         private void ConvertToNDC(ref List<float> vertices, Vector3 point, Color4 color)
         {

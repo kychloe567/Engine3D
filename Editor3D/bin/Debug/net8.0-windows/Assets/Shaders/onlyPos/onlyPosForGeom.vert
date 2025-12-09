@@ -11,6 +11,7 @@ uniform mat4 projectionMatrix;
 
 void main()
 {
-	gl_Position = vec4(inPosition,1.0) * modelMatrix * viewMatrix * projectionMatrix;
+	//gl_Position = vec4(inPosition,1.0) * modelMatrix * viewMatrix * projectionMatrix;
+	gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(inPosition, 1.0);
 	gsFragColor = inColor;
 }

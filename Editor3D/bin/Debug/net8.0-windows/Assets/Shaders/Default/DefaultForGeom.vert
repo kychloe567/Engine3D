@@ -25,7 +25,8 @@ uniform int useBillboarding;
 
 void main()
 {
-	gl_Position = inPosition * modelMatrix * viewMatrix * projectionMatrix;
+	//gl_Position = inPosition * modelMatrix * viewMatrix * projectionMatrix;
+	gl_Position = projectionMatrix * viewMatrix * modelMatrix * position;
 	vec4 fragPos4 = inPosition * modelMatrix;
 
 	if(useBillboarding == 1)
@@ -42,7 +43,8 @@ void main()
 			vec4(0.0, 0.0, 0.0, 1.0)
 		);
 
-		gl_Position = inPosition * billboardMat * modelMatrix * viewMatrix * projectionMatrix;
+		//gl_Position = inPosition * billboardMat * modelMatrix * viewMatrix * projectionMatrix;
+		gl_Position = projectionMatrix * viewMatrix * modelMatrix * billboardMat * inPosition;
 		fragPos4 = inPosition * billboardMat * modelMatrix;
 	}
 

@@ -71,7 +71,7 @@ namespace Engine3D
                             }
                             else
                             {
-                                Vector3 searchDir = Vector3.Transform(new Vector3(0, 1, 0), insto.transformation.Rotation);
+                                Vector3 searchDir = Vector3.Transform(new Vector3(0, 1, 0), ((InstancedMesh)instMesh).instancedData[gizmoManager.instIndex].Rotation);
                                 if (searchDir.Y == 0)
                                     searchDir.Y = 0.01f;
                                 float slopeX = searchDir.X / searchDir.Y;

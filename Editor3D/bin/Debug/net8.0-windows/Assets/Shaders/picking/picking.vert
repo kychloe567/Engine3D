@@ -11,5 +11,6 @@ flat out uint instIndex;
 void main()
 {
 	instIndex = uint(0);
-	gl_Position = vec4(inPosition,1.0) * modelMatrix * viewMatrix * projectionMatrix;
+	//gl_Position = vec4(inPosition,1.0) * modelMatrix * viewMatrix * projectionMatrix;
+	gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(inPosition, 1.0);
 }

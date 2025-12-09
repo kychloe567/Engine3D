@@ -393,9 +393,9 @@ namespace Engine3D
 
             Matrix4 modelMatrix = scaleMatrix * rotationMatrix * translationMatrix;
 
-            GL.UniformMatrix4(GL.GetUniformLocation(infiniteFloorShader.programId, "modelMatrix"), true, ref modelMatrix);
-            GL.UniformMatrix4(GL.GetUniformLocation(infiniteFloorShader.programId, "viewMatrix"), true, ref viewMatrix);
-            GL.UniformMatrix4(GL.GetUniformLocation(infiniteFloorShader.programId, "projectionMatrix"), true, ref projectionMatrix);
+            GL.UniformMatrix4(GL.GetUniformLocation(infiniteFloorShader.programId, "modelMatrix"), false, ref modelMatrix);
+            GL.UniformMatrix4(GL.GetUniformLocation(infiniteFloorShader.programId, "viewMatrix"), false, ref viewMatrix);
+            GL.UniformMatrix4(GL.GetUniformLocation(infiniteFloorShader.programId, "projectionMatrix"), false, ref projectionMatrix);
             GL.Uniform3(GL.GetUniformLocation(infiniteFloorShader.programId, "cameraPos"), ref cameraPos);
             GL.Uniform3(GL.GetUniformLocation(infiniteFloorShader.programId, "bgColor"), backgroundColor.R, backgroundColor.G, backgroundColor.B);
             GL.Uniform3(GL.GetUniformLocation(infiniteFloorShader.programId, "lineColor"), gridColor.R, gridColor.G, gridColor.B);

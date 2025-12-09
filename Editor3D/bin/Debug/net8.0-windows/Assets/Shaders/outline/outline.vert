@@ -1,46 +1,25 @@
 #version 330 core
 
-layout (location = 0) in vec3 inPosition;
-layout (location = 1) in vec3 inNormal;
+layout(location = 0) in vec3 inPosition;
+layout(location = 1) in vec3 inNormal;
 
 uniform mat4 modelMatrix;
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
-uniform vec3 cameraPos;
 
-uniform mat4 _scaleMatrix;
-uniform mat4 _rotMatrix;
-
-mat4 GetTranslationMatrix(mat4 mMatrix)
-{
-    vec3 translation = vec3(mMatrix[0][3], mMatrix[1][3], mMatrix[2][3]);
-
-    // Construct a translation-only matrix
-    mat4 translationMatrix = mat4(
-        vec4(1.0, 0.0, 0.0, translation.x),
-        vec4(0.0, 1.0, 0.0, translation.y),
-        vec4(0.0, 0.0, 1.0, translation.z),
-        vec4(0.0, 0.0, 0.0, 1.0) // Set the translation component
-    );
-
-    return translationMatrix;
-}
+uniform float outlineWidth = 1;
 
 void main()
 {
-//	mat4 transMatrix = GetTranslationMatrix(modelMatrix);
-//
-//    vec4 positionedVertex = vec4(inPosition, 1.0) * _scaleMatrix * _rotMatrix * transMatrix;
-//
-////    float distance = length(abs(positionedVertex.xyz-cameraPos));
-////    float outlineWidth = (9.0/580.0) * distance + (10.0/29.0);
-//    float outlineWidth = 2;
-//
-//    vec4 rotatedNormal = vec4(inNormal * outlineWidth, 1.0) * _rotMatrix;
-//    vec4 final = positionedVertex + rotatedNormal;
+    // Transform position to view space
+    vec3 viewPosition = vec3(viewMatrix * modelMatrix * vec4(inPosition, 1.0));
 
-    vec4 positionedVertex = vec4(inPosition, 1.0) * modelMatrix;
-    vec4 final = positionedVertex + vec4(inNormal, 1.0);
+    // Transform normal to view space
+    vec3 viewNormal = normalize(mat3(viewMatrix * modelMatrix) * inNormal);
 
-    gl_Position = vec4(final.xyz,1.0) * viewMatrix * projectionMatrix;
+    // Offset the vertex along the view-space normal
+    vec3 displacedPosition = viewPosition + viewNormal * outlineWidth;
+
+    // Project into clip space
+    gl_Position = projectionMatrix * vec4(displacedPosition, 1.0);
 }

@@ -27,7 +27,8 @@ void main()
 {
 	vec4 position = vec4(inPosition,1.0);
 
-	gl_Position = position * modelMatrix * viewMatrix * projectionMatrix;
+	//gl_Position = position * modelMatrix * viewMatrix * projectionMatrix;
+	gl_Position = projectionMatrix * viewMatrix * modelMatrix * position;
 
 	vec4 fragPos4 = position * modelMatrix;
 
@@ -45,7 +46,8 @@ void main()
 			vec4(0.0, 0.0, 0.0, 1.0)
 		);
 
-		gl_Position = position * billboardMat * modelMatrix * viewMatrix * projectionMatrix;
+		//gl_Position = position * billboardMat * modelMatrix * viewMatrix * projectionMatrix;
+		gl_Position = projectionMatrix * viewMatrix * modelMatrix * billboardMat * position;
 		fragPos4 = position * billboardMat * modelMatrix;
 	}
 

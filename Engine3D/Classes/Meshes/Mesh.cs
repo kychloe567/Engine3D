@@ -296,9 +296,9 @@ namespace Engine3D
                 GetUniformLocations();
             }
 
-            GL.UniformMatrix4(uniformLocations["modelMatrix"], true, ref modelMatrix);
-            GL.UniformMatrix4(uniformLocations["viewMatrix"], true, ref viewMatrix);
-            GL.UniformMatrix4(uniformLocations["projectionMatrix"], true, ref projectionMatrix);
+            GL.UniformMatrix4(uniformLocations["modelMatrix"], false, ref modelMatrix);
+            GL.UniformMatrix4(uniformLocations["viewMatrix"], false, ref viewMatrix);
+            GL.UniformMatrix4(uniformLocations["projectionMatrix"], false, ref projectionMatrix);
             GL.Uniform2(uniformLocations["windowSize"], windowSize);
             GL.Uniform3(uniformLocations["cameraPosition"], camera.GetPosition());
             GL.Uniform1(uniformLocations["useBillboarding"], useBillboarding);
@@ -342,9 +342,9 @@ namespace Engine3D
             projectionMatrix = camera.projectionMatrix;
             viewMatrix = camera.viewMatrix;
 
-            GL.UniformMatrix4(uniformAnimLocations["modelMatrix"], true, ref modelMatrix);
-            GL.UniformMatrix4(uniformAnimLocations["viewMatrix"], true, ref viewMatrix);
-            GL.UniformMatrix4(uniformAnimLocations["projectionMatrix"], true, ref projectionMatrix);
+            GL.UniformMatrix4(uniformAnimLocations["modelMatrix"], false, ref modelMatrix);
+            GL.UniformMatrix4(uniformAnimLocations["viewMatrix"], false, ref viewMatrix);
+            GL.UniformMatrix4(uniformAnimLocations["projectionMatrix"], false, ref projectionMatrix);
             GL.Uniform2(uniformAnimLocations["windowSize"], windowSize);
             GL.Uniform3(uniformAnimLocations["cameraPosition"], camera.GetPosition());
             GL.Uniform1(uniformAnimLocations["useBillboarding"], useBillboarding);
@@ -493,9 +493,9 @@ namespace Engine3D
 
             cameraPos = camera.GetPosition();
 
-            GL.UniformMatrix4(GL.GetUniformLocation(shader.programId, "modelMatrix"), true, ref modelMatrix);
-            GL.UniformMatrix4(GL.GetUniformLocation(shader.programId, "viewMatrix"), true, ref viewMatrix);
-            GL.UniformMatrix4(GL.GetUniformLocation(shader.programId, "projectionMatrix"), true, ref projectionMatrix);
+            GL.UniformMatrix4(GL.GetUniformLocation(shader.programId, "modelMatrix"), false, ref modelMatrix);
+            GL.UniformMatrix4(GL.GetUniformLocation(shader.programId, "viewMatrix"), false, ref viewMatrix);
+            GL.UniformMatrix4(GL.GetUniformLocation(shader.programId, "projectionMatrix"), false, ref projectionMatrix);
             //GL.Uniform3(GL.GetUniformLocation(shader.id, "cameraPos"), cameraPos);
 
             //GL.UniformMatrix4(GL.GetUniformLocation(shader.id, "_scaleMatrix"), true, ref scaleMatrix);

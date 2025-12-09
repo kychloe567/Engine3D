@@ -16,21 +16,6 @@ uniform mat4 _rotMatrix;
 
 flat out uint instIndex;
 
-mat4 GetTranslationMatrix(mat4 mMatrix)
-{
-    vec3 translation = vec3(mMatrix[0][3], mMatrix[1][3], mMatrix[2][3]);
-
-    // Construct a translation-only matrix
-    mat4 translationMatrix = mat4(
-        vec4(1.0, 0.0, 0.0, translation.x),
-        vec4(0.0, 1.0, 0.0, translation.y),
-        vec4(0.0, 0.0, 1.0, translation.z),
-        vec4(0.0, 0.0, 0.0, 1.0) // Set the translation component
-    );
-
-    return translationMatrix;
-}
-
 mat3 convertQuaternionToMat3(vec4 q) {
     // Convert quaternion to 3x3 rotation matrix
     float qx2 = q.x * q.x;
@@ -64,29 +49,29 @@ mat3 convertQuaternionToMat3(vec4 q) {
 
 void main()
 {
-	gl_Position = vec4(inPosition,1.0) * modelMatrix * viewMatrix * projectionMatrix;
-
-    mat4 transMatrix = GetTranslationMatrix(modelMatrix);
-
-    mat3 rotationMatrix = convertQuaternionToMat3(instRotation);
-    mat4 rotationMatrix4 = mat4(
-        vec4(rotationMatrix[0], 0),
-        vec4(rotationMatrix[1], 0),
-        vec4(rotationMatrix[2], 0),
-        vec4(0, 0, 0, 1) 
+    mat3 rot3 = convertQuaternionToMat3(instRotation);
+    mat4 rot = mat4(
+        vec4(rot3[0], 0.0),
+        vec4(rot3[1], 0.0),
+        vec4(rot3[2], 0.0),
+        vec4(0.0, 0.0, 0.0, 1.0)
     );
-    mat4 scaleMatrix = mat4(
+
+    mat4 scale = mat4(
         vec4(instScale.x, 0.0, 0.0, 0.0),
         vec4(0.0, instScale.y, 0.0, 0.0),
         vec4(0.0, 0.0, instScale.z, 0.0),
         vec4(0.0, 0.0, 0.0, 1.0)
     );
 
-    vec4 rotatedVertex = vec4((rotationMatrix4 * vec4(inPosition,1.0)).xyz, 1.0);
-    vec4 scaledVertex = (scaleMatrix*_scaleMatrix) * rotatedVertex;
+    mat4 translation = mat4(
+        vec4(1.0, 0.0, 0.0, 0.0),
+        vec4(0.0, 1.0, 0.0, 0.0),
+        vec4(0.0, 0.0, 1.0, 0.0),
+        vec4(instPosition, 1.0)
+    );
 
-    vec4 positionedVertex = vec4(inPosition+instPosition, 1.0) * (scaleMatrix*_scaleMatrix) * (rotationMatrix4*_rotMatrix) * transMatrix;
+    mat4 model = translation * rot * scale;
 
-    instIndex = uint(gl_InstanceID);
-	gl_Position = vec4(positionedVertex.xyz,1.0) * viewMatrix * projectionMatrix;
+    gl_Position = projectionMatrix * viewMatrix * modelMatrix * model * vec4(inPosition, 1.0);
 }
