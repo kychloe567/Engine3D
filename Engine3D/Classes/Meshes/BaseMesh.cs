@@ -11,7 +11,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-using static OpenTK.Graphics.OpenGL.GL;
+using static OpenTK.Graphics.OpenGL4.GL;
 using static System.Formats.Asn1.AsnWriter;
 
 namespace Engine3D

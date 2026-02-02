@@ -48,6 +48,8 @@ namespace Engine3D
 
         private int[] numberOfLogsToShowList = new int[0];
         private int numberOfLogsToShowListIndex = 1;
+        private string consoleText = "";
+        private const int ConsoleBufferSize = 1_000_000;
 
         private bool showAddComponentWindow = false;
         private string searchQueryAddComponent = "";
@@ -78,20 +80,7 @@ namespace Engine3D
             showConsoleTypeList = Enum.GetNames(typeof(ShowConsoleType));
             numberOfLogsToShowList = new int[] { 50, 100, 200, 500, 1000 };
 
-            var style = ImGui.GetStyle();
-            style.WindowBorderSize = 0.5f;
-            style.Colors[(int)ImGuiCol.WindowBg] = baseBGColor;
-            style.Colors[(int)ImGuiCol.Border] = new System.Numerics.Vector4(0, 0, 0, 1.0f);
-            style.Colors[(int)ImGuiCol.Tab] = new System.Numerics.Vector4(0.5f, 0.5f, 0.5f, 1.0f);
-            style.Colors[(int)ImGuiCol.TabActive] = new System.Numerics.Vector4(0.6f, 0.6f, 0.6f, 1.0f);
-            style.Colors[(int)ImGuiCol.TabHovered] = new System.Numerics.Vector4(0.6f, 0.6f, 0.6f, 1.0f);
-            style.Colors[(int)ImGuiCol.ButtonHovered] = new System.Numerics.Vector4(0.6f, 0.6f, 0.6f, 1.0f);
-            style.Colors[(int)ImGuiCol.ButtonActive] = new System.Numerics.Vector4(0.7f, 0.7f, 0.7f, 1.0f);
-            style.Colors[(int)ImGuiCol.CheckMark] = new System.Numerics.Vector4(1f, 1f, 1f, 1.0f);
-            style.Colors[(int)ImGuiCol.FrameBg] = new System.Numerics.Vector4(0.5f, 0.5f, 0.5f, 1.0f);
-            style.Colors[(int)ImGuiCol.PopupBg] = new System.Numerics.Vector4(0.6f, 0.6f, 0.6f, 1.0f); // RGBA
-            style.WindowRounding = 5f;
-            style.PopupRounding = 5f;
+            // Style is applied after ImGui is initialized in OnLoad.
 
             #region GetComponents
             Assembly engineAssembly = typeof(IComponent).Assembly;
@@ -211,6 +200,9 @@ namespace Engine3D
         #region MainMethods
         public void OnLoad()
         {
+            Initialize();
+            ApplyStyle();
+
             engine.SubscribeToResizeEvent(OnResize);
             engine.SubscribeToObjectSelectedEvent(ObjectSelected);
 
@@ -237,6 +229,24 @@ namespace Engine3D
             currentTextureAssetFolder = engineData.assetManager.assets.folders[FileType.Textures.ToString()];
             currentModelAssetFolder = engineData.assetManager.assets.folders[FileType.Models.ToString()];
             currentAudioAssetFolder = engineData.assetManager.assets.folders[FileType.Audio.ToString()];
+        }
+
+        private void ApplyStyle()
+        {
+            var style = ImGui.GetStyle();
+            style.WindowBorderSize = 0.5f;
+            style.Colors[(int)ImGuiCol.WindowBg] = baseBGColor;
+            style.Colors[(int)ImGuiCol.Border] = new System.Numerics.Vector4(0, 0, 0, 1.0f);
+            style.Colors[(int)ImGuiCol.Tab] = new System.Numerics.Vector4(0.5f, 0.5f, 0.5f, 1.0f);
+            style.Colors[(int)ImGuiCol.TabActive] = new System.Numerics.Vector4(0.6f, 0.6f, 0.6f, 1.0f);
+            style.Colors[(int)ImGuiCol.TabHovered] = new System.Numerics.Vector4(0.6f, 0.6f, 0.6f, 1.0f);
+            style.Colors[(int)ImGuiCol.ButtonHovered] = new System.Numerics.Vector4(0.6f, 0.6f, 0.6f, 1.0f);
+            style.Colors[(int)ImGuiCol.ButtonActive] = new System.Numerics.Vector4(0.7f, 0.7f, 0.7f, 1.0f);
+            style.Colors[(int)ImGuiCol.CheckMark] = new System.Numerics.Vector4(1f, 1f, 1f, 1.0f);
+            style.Colors[(int)ImGuiCol.FrameBg] = new System.Numerics.Vector4(0.5f, 0.5f, 0.5f, 1.0f);
+            style.Colors[(int)ImGuiCol.PopupBg] = new System.Numerics.Vector4(0.6f, 0.6f, 0.6f, 1.0f); // RGBA
+            style.WindowRounding = 5f;
+            style.PopupRounding = 5f;
         }
 
         public void OnRender(FrameEventArgs args)
@@ -760,10 +770,12 @@ namespace Engine3D
                     mesh.RecalculateModelMatrix(new bool[] { true, true, true });
                 }
 
+#if !ENGINE3D_DISABLE_PHYSX
                 if(castedO.GetComponent<Physics>() is Physics physics)
                 {
                     physics.UpdatePhysxPositionAndRotation(castedO.transformation);
                 }
+#endif
             }
             //TODO pointlight and particle system selection
         }

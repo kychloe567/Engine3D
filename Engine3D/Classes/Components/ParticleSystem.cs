@@ -4,6 +4,7 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -166,7 +167,8 @@ namespace Engine3D
 
         public ParticleSystem(InstancedVAO instancedMeshVao, VBO instancedMeshVbo, int shaderProgramId, Vector2 windowSize, ref Camera camera, ref Object parentObject)
         {
-            mesh = new InstancedMesh(instancedMeshVao, instancedMeshVbo, shaderProgramId, FileManager.GetPathAfterAssetFolder("C:\\Users\\Chloe\\Desktop\\GitHubProjects\\Engine3D\\Editor3D\\bin\\Debug\\net8.0 - windows\\Assets\\Models\\cow.obj"), windowSize, ref camera, ref parentObject);
+            string defaultModelPath = Path.Combine("Assets", "Models", "cow.obj");
+            mesh = new InstancedMesh(instancedMeshVao, instancedMeshVbo, shaderProgramId, FileManager.GetPathAfterAssetFolder(defaultModelPath), windowSize, ref camera, ref parentObject);
             mesh.useShading = false;
 
             this.instancedMeshVao = instancedMeshVao;

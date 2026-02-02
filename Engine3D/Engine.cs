@@ -9,7 +9,6 @@ using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using System.Diagnostics;
 using MagicPhysX;
-using System.Drawing;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -31,6 +30,7 @@ namespace Engine3D
 
     public partial class Engine : GameWindow
     {
+        public static Engine? ActiveGameWindow { get; private set; }
 
         #region OPENGL
         private int framebuffer = -1;
@@ -39,6 +39,9 @@ namespace Engine3D
         private int depthRenderbuffer = -1;
 
         public static GLState GLState = new GLState();
+        private static DebugProc? _debugProc;
+        private static bool _debugOutputEnabled;
+        private bool _glErrorLoggedThisFrame;
         public static bool reloadUniformLocations = false;
         public string GLError = "";
         public int debugTexture2048 = -1;
@@ -118,7 +121,7 @@ namespace Engine3D
         public GameWindowProperty gameWindowProperty;
         //private Vector2 gameWindowMousePos;
 
-        private SoundManager soundManager;
+        private SoundManager? soundManager;
         private AssetManager assetManager;
         private Stopwatch fileDetectorStopWatch;
         public static TextureManager textureManager;
@@ -155,6 +158,20 @@ namespace Engine3D
 
         #region Engine variables
         public FPS fps = new FPS();
+
+        private static bool IsPhysxEnabled =>
+#if ENGINE3D_DISABLE_PHYSX
+            false;
+#else
+            OperatingSystem.IsWindows();
+#endif
+
+        private static bool IsAudioEnabled =>
+#if ENGINE3D_DISABLE_AUDIO
+            false;
+#else
+            OperatingSystem.IsWindows();
+#endif
 
         public delegate void RenderDelegate(FrameEventArgs args);
         public delegate void UpdateDelegate(FrameEventArgs args);
@@ -257,7 +274,7 @@ namespace Engine3D
             }
         }
 
-        public Physx physx;
+        public Physx? physx;
 
         private bool useOcclusionCulling = false;
         private QueryPool queryPool;
@@ -276,7 +293,7 @@ namespace Engine3D
                                                     {  
                                                         StencilBits = 8, 
                                                         DepthBits = 32, 
-                                                        APIVersion = new Version(4,6),
+                                                        APIVersion = OperatingSystem.IsMacOS() ? new Version(4,1) : new Version(4,6),
                                                         Profile = ContextProfile.Core,
                                                         Flags = ContextFlags.ForwardCompatible
                                                     })
@@ -323,8 +340,9 @@ namespace Engine3D
             gridColor = new Color4(r, g, b, 1.0f);
         }
 
-        protected override void OnRenderFrame(FrameEventArgs args)
+        protected unsafe override void OnRenderFrame(FrameEventArgs args)
         {
+            _glErrorLoggedThisFrame = false;
             #region Fullscreen scissoring
             //if (!editorData.isGameFullscreen)
             //{
@@ -360,17 +378,24 @@ namespace Engine3D
 
             ObjectAndAxisPicking();
 
-            GL.Viewport(0, 0, (int)gameWindowProperty.gameWindowSize.X, (int)gameWindowProperty.gameWindowSize.Y);
+            int viewW = (int)Math.Max(1, gameWindowProperty.gameWindowSize.X);
+            int viewH = (int)Math.Max(1, gameWindowProperty.gameWindowSize.Y);
+            GL.Viewport(0, 0, viewW, viewH);
+            CheckGLError("viewport->scene");
 
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, framebuffer);
+            CheckGLError("bind framebuffer");
 
             GL.ClearColor(backgroundColor);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
+            CheckGLError("clear");
 
             RenderInfiniteFloor();
+            CheckGLError("render infinite floor");
 
             shaderProgram.Use();
             Light.SendToGPU(lights, shaderProgram.programId);
+            CheckGLError("main shader + lights");
 
             shadowShader.Use();
             foreach (var light in lights)
@@ -383,23 +408,31 @@ namespace Engine3D
                 //}
                 DrawObjectsForShadow(args.Time, light);
             }
+            CheckGLError("draw shadow maps");
 
             GL.Viewport(0, 0, (int)gameWindowProperty.gameWindowSize.X, (int)gameWindowProperty.gameWindowSize.Y);
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, framebuffer);
             shaderProgram.Use();
 
             DrawObjects(args.Time);
+            CheckGLError("draw objects");
             DrawGizmos();
+            CheckGLError("draw gizmos");
             DrawMoverGizmo();
+            CheckGLError("draw mover gizmo");
 
             TextUpdating();
+            CheckGLError("text updating");
 
             instancedShaderProgram.Use();
             Light.SendToGPU(lights, instancedShaderProgram.programId);
             DrawParticleSystems();
+            CheckGLError("draw particles");
 
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-            GL.Viewport(0, 0, (int)windowSize.X, (int)windowSize.Y);
+            GLFW.GetFramebufferSize(WindowPtr, out int fbWidth, out int fbHeight);
+            GL.Viewport(0, 0, fbWidth, fbHeight);
+            CheckGLError("bind default framebuffer");
 
             #region Fullscreen scissoring
             //if (!editorData.isGameFullscreen)
@@ -413,6 +446,7 @@ namespace Engine3D
             {
                 renderMethod.Invoke(args);
             }
+            CheckGLError("render methods");
 
             Context.SwapBuffers();
 
@@ -447,7 +481,8 @@ namespace Engine3D
                     character.CalculateVelocity(KeyboardState, MouseState, args);
                     character.UpdatePosition(KeyboardState, MouseState, args);
 
-                    soundManager.SetListener(mainCamera.GetPosition());
+                    if (soundManager != null)
+                        soundManager.SetListener(mainCamera.GetPosition());
                 }
                 else
                 {
@@ -473,7 +508,7 @@ namespace Engine3D
 
                     character.AfterUpdate(MouseState, args, gameState);
 
-                if (fps.totalTime > 0 && gameState == GameState.Running)
+                if (fps.totalTime > 0 && gameState == GameState.Running && physx != null)
                 {
                     physx.Simulate((float)args.Time);
                     foreach (Object o in objects)
@@ -517,11 +552,15 @@ namespace Engine3D
         protected override void OnLoad()
         {
             base.OnLoad();
+            ActiveGameWindow = this;
+            Console.WriteLine("Engine.OnLoad: start");
             CursorState = CursorState.Normal; 
 
             textGenerator = new TextGenerator();
+            Console.WriteLine("Engine.OnLoad: text generator created");
 
             #region Editor data
+            Console.WriteLine("Engine.OnLoad: loading UI textures");
             textureManager.AddTexture("ui_play.png", out bool successPlay, flipY: false);
             if (!successPlay) { throw new Exception("ui_play.png was not found in the embedded resources!"); }
             textureManager.AddTexture("ui_stop.png", out bool successStop, flipY: false);
@@ -544,35 +583,49 @@ namespace Engine3D
             if (!successScale) { throw new Exception("ui_back.png was not found in the embedded resources!"); }
             textureManager.AddTexture("ui_relative.png", out bool successRelative, flipY: false);
             if (!successRelative) { throw new Exception("ui_relative.png was not found in the embedded resources!"); }
+            Console.WriteLine("Engine.OnLoad: UI textures loaded");
+            Console.WriteLine("Engine.OnLoad: loading ui_absolute.png");
             textureManager.AddTexture("ui_absolute.png", out bool successAbsolute, flipY: false);
             if (!successAbsolute) { throw new Exception("ui_absolute.png was not found in the embedded resources!"); }
+            Console.WriteLine("Engine.OnLoad: ui_absolute.png loaded");
 
+            Console.WriteLine("Engine.OnLoad: scanning assets");
             FileManager.GetAllAssets(ref assetManager);
             fileDetectorStopWatch.Start();
+            Console.WriteLine("Engine.OnLoad: assets scanned");
             #endregion
 
+            Console.WriteLine("Engine.OnLoad: init framebuffer");
             InitFramebuffer(gameWindowProperty.gameWindowSize);
+            Console.WriteLine("Engine.OnLoad: framebuffer ready");
 
+            Console.WriteLine("Engine.OnLoad: enabling GL states");
             GL.Enable(EnableCap.DepthTest);
             GL.Enable(EnableCap.CullFace);
+            EnableDebugOutput();
+            Console.WriteLine("Engine.OnLoad: GL states enabled");
 
             #region VBO and VAO Init
+            Console.WriteLine("Engine.OnLoad: VBO/VAO init");
             //indirectBuffer = new IndirectBuffer();
             //visibilityVbo = new VisibilityVBO(DynamicCopy: true);
             //frustumVbo = new VBO(DynamicCopy: true);
             //drawCommandsVbo = new DrawCommandVBO(DynamicCopy: true);
 
+            Console.WriteLine("Engine.OnLoad: onlyPos IBO/VBO/VAO");
             onlyPosIbo = new IBO();
             onlyPosVbo = new VBO();
             onlyPosVao = new VAO(3);
             onlyPosVao.LinkToVAO(0, 3, onlyPosVbo);
 
+            Console.WriteLine("Engine.OnLoad: onlyPosAndNormal IBO/VBO/VAO");
             onlyPosAndNormalIbo = new IBO();
             onlyPosAndNormalVbo = new VBO();
             onlyPosAndNormalVao = new VAO(6);
             onlyPosAndNormalVao.LinkToVAO(0, 3, onlyPosAndNormalVbo);
             onlyPosAndNormalVao.LinkToVAO(1, 3, onlyPosAndNormalVbo);
 
+            Console.WriteLine("Engine.OnLoad: mesh IBO/VBO/VAO");
             meshIbo = new IBO();
             meshVbo = new VBO();
             meshVao = new VAO(Mesh.floatCount);
@@ -582,6 +635,7 @@ namespace Engine3D
             meshVao.LinkToVAO(3, 4, meshVbo);
             meshVao.LinkToVAO(4, 3, meshVbo);
 
+            Console.WriteLine("Engine.OnLoad: meshAnim IBO/VBO/VAO");
             meshAnimIbo = new IBO();
             meshAnimVbo = new VBO();
             meshAnimVao = new VAO(Mesh.floatAnimCount);
@@ -602,6 +656,7 @@ namespace Engine3D
             //GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 1, meshVbo.id);
             //GL.BindBufferBase(BufferRangeTarget.UniformBuffer, 2, frustumVbo.id);
 
+            Console.WriteLine("Engine.OnLoad: instancedMesh VBO/VAO");
             instancedMeshVbo = new VBO();
             instancedMeshVao = new InstancedVAO(InstancedMesh.floatCount, InstancedMesh.instancedFloatCount);
             instancedMeshVao.LinkToVAO(0, 3, meshVbo);
@@ -614,6 +669,7 @@ namespace Engine3D
             instancedMeshVao.LinkToVAOInstanceData(7, 3, 1, instancedMeshVbo);
             instancedMeshVao.LinkToVAOInstanceData(8, 4, 1, instancedMeshVbo);
 
+            Console.WriteLine("Engine.OnLoad: instancedOnlyPosAndNormal VBO/VAO");
             instancedOnlyPosAndNormalVbo = new VBO();
             instancedOnlyPosAndNormalVao = new InstancedVAO(6, InstancedMesh.instancedFloatCount);
             instancedOnlyPosAndNormalVao.LinkToVAO(0, 3, onlyPosAndNormalVbo);
@@ -623,43 +679,52 @@ namespace Engine3D
             instancedOnlyPosAndNormalVao.LinkToVAOInstanceData(4, 3, 1, instancedOnlyPosAndNormalVbo);
             instancedOnlyPosAndNormalVao.LinkToVAOInstanceData(5, 4, 1, instancedOnlyPosAndNormalVbo);
 
+            Console.WriteLine("Engine.OnLoad: text VBO/VAO");
             textVbo = new VBO();
             textVao = new VAO(TextMesh.floatCount);
             textVao.LinkToVAO(0, 4, textVbo);
             textVao.LinkToVAO(1, 4, textVbo);
             textVao.LinkToVAO(2, 2, textVbo);
 
+            Console.WriteLine("Engine.OnLoad: uiTex VBO/VAO");
             uiTexVbo = new VBO();
             uiTexVao = new VAO(UITextureMesh.floatCount);
             uiTexVao.LinkToVAO(0, 4, uiTexVbo);
             uiTexVao.LinkToVAO(1, 4, uiTexVbo);
             uiTexVao.LinkToVAO(2, 2, uiTexVbo);
 
+            Console.WriteLine("Engine.OnLoad: wire IBO/VBO/VAO");
             wireIbo = new IBO();
             wireVbo = new VBO();
             wireVao = new VAO(WireframeMesh.floatCount);
             wireVao.LinkToVAO(0, 3, wireVbo);
             wireVao.LinkToVAO(1, 4, wireVbo);
 
+            Console.WriteLine("Engine.OnLoad: aabb VBO/VAO");
             aabbVbo = new VBO();
             aabbVao = new VAO(3);
             aabbVao.LinkToVAO(0, 3, aabbVbo);
 
+            Console.WriteLine("Engine.OnLoad: infiniteFloor VBO/VAO");
             infiniteFloorVbo = new VBO();
             infiniteFloorVao = new VAO(3);
             infiniteFloorVao.LinkToVAO(0, 3, infiniteFloorVbo);
+            Console.WriteLine("Engine.OnLoad: VBO/VAO init done");
 
             #endregion
 
             #region UBO Init
+            Console.WriteLine("Engine.OnLoad: UBO init");
             lightUBO = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.UniformBuffer, lightUBO);
             int size = Marshal.SizeOf(typeof(LightStruct)) * Light.MAX_LIGHTS;
             GL.BufferData(BufferTarget.UniformBuffer, size, IntPtr.Zero, BufferUsageHint.DynamicDraw);
             GL.BindBuffer(BufferTarget.UniformBuffer, 0);
+            Console.WriteLine("Engine.OnLoad: UBO init done");
             #endregion
 
             #region Shader Init
+            Console.WriteLine("Engine.OnLoad: shader init");
 
             // Create the shader program
             outlineShader = new Shader(new List<string>() { "outline.vert", "outline.frag" });
@@ -674,20 +739,24 @@ namespace Engine3D
             aabbShaderProgram = new Shader(new List<string>() { "aabb.vert", "aabb.frag" });
             infiniteFloorShader = new Shader(new List<string>() { "infiniteFloor.vert", "infiniteFloor.frag" });
             shadowShader = new Shader(new List<string>() { "shadow.vert", "shadow.frag" });
+            Console.WriteLine("Engine.OnLoad: shader init done");
             #endregion
 
+            Console.WriteLine("Engine.OnLoad: picking texture");
             pickingTexture = new PickingTexture(windowSize);
+            Console.WriteLine("Engine.OnLoad: picking texture done");
 
-            // Create Physx context
-            physx = new Physx(true);
+            // Create Physx context (Windows only for now)
+            physx = IsPhysxEnabled ? new Physx(true) : null;
 
-            // Create Sound Manager
-            soundManager = new SoundManager();
+            // Create Sound Manager (Windows only for now)
+            soundManager = IsAudioEnabled ? new SoundManager() : null;
 
             // Add test sound
             //soundManager.CreateSoundEmitter("nyanya.ogg", new Vector3(0,-28,0));
             //soundManager.PlayAll();
 
+            Console.WriteLine("Engine.OnLoad: camera setup");
             //Camera
             Object camObj = new Object(ObjectType.Empty) { name = "MainCamera" };
             camObj.components.Add(new Camera(windowSize, camObj));
@@ -699,9 +768,10 @@ namespace Engine3D
             onlyPosShaderProgram.Use();
 
             Vector3 characterPos = new Vector3(-5, 10, 0);
-            character = new Character(new WireframeMesh(wireVao, wireVbo, onlyPosShaderProgram.programId, ref mainCamera_), ref physx, characterPos, ref mainCamera_);
+            character = new Character(new WireframeMesh(wireVao, wireVbo, onlyPosShaderProgram.programId, ref mainCamera_), physx, characterPos, ref mainCamera_);
 
             gizmoManager = new GizmoManager(meshVao, meshVbo, shaderProgram, ref mainCamera_);
+            Console.WriteLine("Engine.OnLoad: camera setup done");
 
             //Point Lights
             //objects.Add(new PointLight(Color4.White, shaderProgram.id, pointLights.Count));
@@ -894,10 +964,12 @@ namespace Engine3D
 
             objects.Sort();
 
+            Console.WriteLine("Engine.OnLoad: invoking onLoad methods");
             foreach (var onLoadMethod in onLoadMethods)
             {
                 onLoadMethod.Invoke();
             }
+            Console.WriteLine("Engine.OnLoad: done");
         }
 
 
@@ -1081,17 +1153,66 @@ namespace Engine3D
             Resized(e);
         }
 
-        private void Resized(ResizeEventArgs e)
+        private unsafe void Resized(ResizeEventArgs e)
         {
             base.OnResize(e);
-            GL.Viewport(0, 0, e.Width, e.Height);
+            GLFW.GetFramebufferSize(WindowPtr, out int fbWidth, out int fbHeight);
+            GL.Viewport(0, 0, fbWidth, fbHeight);
             windowSize.X = e.Width;
             windowSize.Y = e.Height;
+            gameWindowProperty.gameWindowSize = new Vector2(e.Width, e.Height);
+            ResizeFramebuffer(gameWindowProperty.gameWindowSize);
 
             if(windowResized != null)
             {
                 windowResized.Invoke(e);
             }
+        }
+
+        private void CheckGLError(string tag)
+        {
+            OpenTK.Graphics.OpenGL4.ErrorCode err;
+            while ((err = GL.GetError()) != OpenTK.Graphics.OpenGL4.ErrorCode.NoError)
+            {
+                if (!_glErrorLoggedThisFrame)
+                {
+                    Console.WriteLine($"GL ERROR ({tag}): {err}");
+                    _glErrorLoggedThisFrame = true;
+                }
+            }
+        }
+
+        private void EnableDebugOutput()
+        {
+            if (_debugOutputEnabled)
+                return;
+
+            if (OperatingSystem.IsMacOS())
+            {
+                Console.WriteLine("GL debug output disabled on macOS");
+                return;
+            }
+
+            try
+            {
+                GL.Enable(EnableCap.DebugOutput);
+                GL.Enable(EnableCap.DebugOutputSynchronous);
+                _debugProc = DebugCallback;
+                GL.DebugMessageCallback(_debugProc, IntPtr.Zero);
+                GL.DebugMessageControl(DebugSourceControl.DontCare, DebugTypeControl.DontCare, DebugSeverityControl.DontCare, 0, Array.Empty<int>(), true);
+                _debugOutputEnabled = true;
+                Console.WriteLine("GL debug output enabled");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"GL debug output unavailable: {ex.Message}");
+            }
+        }
+
+        private static void DebugCallback(DebugSource source, DebugType type, int id, DebugSeverity severity, int length, IntPtr message, IntPtr userParam)
+        {
+            string msg = Marshal.PtrToStringAnsi(message, length) ?? string.Empty;
+            Console.WriteLine($"GL DEBUG: {type} {severity} {id}: {msg}");
         }
     }
 }

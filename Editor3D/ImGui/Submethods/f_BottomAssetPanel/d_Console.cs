@@ -16,13 +16,17 @@ namespace Engine3D
                 if (currentBottomPanelTab != "Console")
                     currentBottomPanelTab = "Console";
 
-                ImGui.PushFont(default18);
-                foreach (Log log in Engine.consoleManager.Logs.AsEnumerable().Reverse().Take(numberOfLogsToShowList[numberOfLogsToShowListIndex]))
+                var logsToShow = Engine.consoleManager.Logs.AsEnumerable().Reverse().Take(numberOfLogsToShowList[numberOfLogsToShowListIndex]).ToList();
+                var sb = new StringBuilder();
+                foreach (Log log in logsToShow)
                 {
-                    ImGui.PushStyleColor(ImGuiCol.Text, Engine.consoleManager.LogColors[log.logType]);
-                    ImGui.TextWrapped(log.message);
-                    ImGui.PopStyleColor();
+                    sb.AppendLine(log.message);
                 }
+                consoleText = sb.ToString();
+                ImGui.PushFont(default18);
+                ImGui.InputTextMultiline("##consoleText", ref consoleText, ConsoleBufferSize,
+                    new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y - 60),
+                    ImGuiInputTextFlags.ReadOnly);
                 ImGui.PopFont();
 
                 //ImGui.SetCursorPosY(ImGui.GetWindowSize().Y - editorData.gameWindow.bottomPanelSize - 4);
@@ -75,6 +79,11 @@ namespace Engine3D
                     ImGui.Dummy(new System.Numerics.Vector2(0, 5));
 
                     ImGui.EndCombo();
+                }
+                ImGui.SameLine();
+                if (ImGui.Button("Copy All"))
+                {
+                    engine.ClipboardString = consoleText;
                 }
                 ImGui.PopStyleVar();
                 ImGui.Dummy(new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, 20));

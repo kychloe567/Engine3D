@@ -149,7 +149,7 @@ namespace Engine3D
 
                     DeleteFolderContent("Temp");
                 }
-                else if(Directory.Exists(Environment.CurrentDirectory + "\\Assets\\Temp") && new DirectoryInfo(Environment.CurrentDirectory + "\\Assets\\Temp").GetFiles().Count() > 0)
+                else if(Directory.Exists(Path.Combine(AppContext.BaseDirectory, "Assets", "Temp")) && new DirectoryInfo(Path.Combine(AppContext.BaseDirectory, "Assets", "Temp")).GetFiles().Count() > 0)
                 {
                     DeleteFolderContent("Temp");
                 }
@@ -218,9 +218,9 @@ namespace Engine3D
                             downloads = match.Groups["downloads"].Value;
                         }
 
-                        if (!File.Exists(Environment.CurrentDirectory + "\\Assets\\Temp\\" + filename))
+                        if (!File.Exists(Path.Combine(AppContext.BaseDirectory, "Assets", "Temp", filename)))
                         {
-                            AssetToDownload assetToDownload = new AssetToDownload(fileWebPath, Environment.CurrentDirectory + "\\Assets\\Temp", filename, size);
+                            AssetToDownload assetToDownload = new AssetToDownload(fileWebPath, Path.Combine(AppContext.BaseDirectory, "Assets", "Temp"), filename, size);
                             assetZipToDownload.Add(assetToDownload);
                         }
                     }
@@ -273,8 +273,8 @@ namespace Engine3D
             {
                 if (assetToDownloadsPreview.Count > 0)
                 {
-                    if (!Directory.Exists(Environment.CurrentDirectory + "\\Assets\\Temp"))
-                        Directory.CreateDirectory(Environment.CurrentDirectory + "\\Assets\\Temp");
+                    if (!Directory.Exists(Path.Combine(AppContext.BaseDirectory, "Assets", "Temp")))
+                        Directory.CreateDirectory(Path.Combine(AppContext.BaseDirectory, "Assets", "Temp"));
 
                     try
                     {
@@ -283,8 +283,8 @@ namespace Engine3D
                         if (!IsDownloadInProgress)
                         {
                             string fileName = Path.GetFileName(new Uri(assetToDownload.webPath).LocalPath);
-                            await DownloadImageAsync(assetToDownload.webPath, Environment.CurrentDirectory + "\\Assets\\Temp\\" + fileName);
-                            if (File.Exists(Environment.CurrentDirectory + "\\Assets\\Temp\\" + fileName))
+                            await DownloadImageAsync(assetToDownload.webPath, Path.Combine(AppContext.BaseDirectory, "Assets", "Temp", fileName));
+                            if (File.Exists(Path.Combine(AppContext.BaseDirectory, "Assets", "Temp", fileName)))
                             {
                                 IsDownloadInProgress = false;
                                 Asset a = assetToDownload.asset;
@@ -300,20 +300,20 @@ namespace Engine3D
 
                 if (assetToDownloadsFull.Count > 0)
                 {
-                    if (!Directory.Exists(Environment.CurrentDirectory + "\\Assets\\Temp"))
-                        Directory.CreateDirectory(Environment.CurrentDirectory + "\\Assets\\Temp");
+                    if (!Directory.Exists(Path.Combine(AppContext.BaseDirectory, "Assets", "Temp")))
+                        Directory.CreateDirectory(Path.Combine(AppContext.BaseDirectory, "Assets", "Temp"));
                 }
 
                 if (assetZipToDownload.Count > 0 && !IsZipDownloadInProgress)
                 {
-                    if (!Directory.Exists(Environment.CurrentDirectory + "\\Assets\\Temp"))
-                        Directory.CreateDirectory(Environment.CurrentDirectory + "\\Assets\\Temp");
+                    if (!Directory.Exists(Path.Combine(AppContext.BaseDirectory, "Assets", "Temp")))
+                        Directory.CreateDirectory(Path.Combine(AppContext.BaseDirectory, "Assets", "Temp"));
 
                     AssetToDownload assetToDownload = assetZipToDownload[0];
                     IsZipDownloadInProgress = true;
                     tryingToDownload = false;
 
-                    await DownloadFileAsync(assetToDownload.fullWebPath, assetToDownload.outputDirectory + "\\" + assetToDownload.fileName, p =>
+                    await DownloadFileAsync(assetToDownload.fullWebPath, Path.Combine(assetToDownload.outputDirectory, assetToDownload.fileName), p =>
                     {
                         // This action runs on the background thread and simply updates the progress
                         zipProgress = p;
@@ -324,25 +324,25 @@ namespace Engine3D
                             throw new Exception("Error?");
                     });
 
-                    if (File.Exists(assetToDownload.outputDirectory + "\\" + assetToDownload.fileName))
+                    if (File.Exists(Path.Combine(assetToDownload.outputDirectory, assetToDownload.fileName)))
                     {
-                        var dirName = assetToDownload.outputDirectory + "\\" + Path.GetFileNameWithoutExtension(assetToDownload.fileName);
+                        var dirName = Path.Combine(assetToDownload.outputDirectory, Path.GetFileNameWithoutExtension(assetToDownload.fileName));
                         Directory.CreateDirectory(dirName);
-                        ZipFile.ExtractToDirectory(assetToDownload.outputDirectory + "\\" + assetToDownload.fileName,
+                        ZipFile.ExtractToDirectory(Path.Combine(assetToDownload.outputDirectory, assetToDownload.fileName),
                                                    dirName);
 
                         //File.Delete(assetToDownload.outputDirectory + "\\" + assetToDownload.fileName);
 
                         List<string> imagePaths = ExtractImagePaths(dirName);
-                        string assetFolder = Environment.CurrentDirectory + "\\Assets\\" + FileType.Textures.ToString() + "\\" + 
-                                             Path.GetFileNameWithoutExtension(assetToDownload.fileName);
+                        string assetFolder = Path.Combine(AppContext.BaseDirectory, "Assets", FileType.Textures.ToString(),
+                                             Path.GetFileNameWithoutExtension(assetToDownload.fileName));
                         if (!Directory.Exists(assetFolder))
                             Directory.CreateDirectory(assetFolder);
                         foreach (string imagePath in imagePaths)
                         {
                             try
                             {
-                                File.Copy(imagePath, assetFolder + "\\" + Path.GetFileName(imagePath));
+                                File.Copy(imagePath, Path.Combine(assetFolder, Path.GetFileName(imagePath)));
                             }
                             catch { }
                         }
@@ -438,10 +438,10 @@ namespace Engine3D
 
         public void DeleteFolderContent(string folder)
         {
-            if (!Directory.Exists(Environment.CurrentDirectory + "\\Assets\\" + folder))
+            if (!Directory.Exists(Path.Combine(AppContext.BaseDirectory, "Assets", folder)))
                 return;
 
-            DirectoryInfo di = new DirectoryInfo(Environment.CurrentDirectory + "\\Assets\\" + folder);
+            DirectoryInfo di = new DirectoryInfo(Path.Combine(AppContext.BaseDirectory, "Assets", folder));
 
             bool success = false;
             int tries = 0;

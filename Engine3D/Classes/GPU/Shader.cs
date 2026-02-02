@@ -170,7 +170,13 @@ namespace Engine3D
             }
 
             // Read and return the shader source code as a string
-            return File.ReadAllText(shaderPath);
+            string source = File.ReadAllText(shaderPath);
+            if (OperatingSystem.IsMacOS())
+            {
+                source = source.Replace("#version 460 core", "#version 410 core");
+                source = source.Replace("#version 430 core", "#version 410 core");
+            }
+            return source;
         }
 
         public static List<string> GetUniformNames(int shaderProgramId)

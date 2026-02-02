@@ -18,6 +18,7 @@ using Assimp.Unmanaged;
 namespace Engine3D
 {
 
+#if !ENGINE3D_DISABLE_PHYSX
     public unsafe class Character
     {
         public float sensitivity = 180f;
@@ -75,32 +76,35 @@ namespace Engine3D
         }
 
         public Camera camera;
-        private Physx physx;
+        private Physx? physx;
         public WireframeMesh mesh;
 
 
-        public Character(WireframeMesh mesh, ref Physx physx, Vector3 position, ref Camera camera)
+        public Character(WireframeMesh mesh, Physx? physx, Vector3 position, ref Camera camera)
         {
             this.mesh = mesh;
             this.physx = physx;
 
-            capsuleControllerDescPtr = new IntPtr(PxCapsuleControllerDesc_new_alloc());
-            GetCapsuleControllerDesc()->height = characterHeight;
-            GetCapsuleControllerDesc()->radius = characterWidth;
-            GetCapsuleControllerDesc()->position = new PxExtendedVec3() { x = position.X, y = position.Y, z = position.Z };
-            GetCapsuleControllerDesc()->upDirection = new PxVec3() { x = 0, y = 1, z = 0 };
-            GetCapsuleControllerDesc()->slopeLimit = slopeLimit;
-            GetCapsuleControllerDesc()->invisibleWallHeight = 0.0f;
-            GetCapsuleControllerDesc()->contactOffset = contactOffset;
-            GetCapsuleControllerDesc()->stepOffset = stepOffset;
-            GetCapsuleControllerDesc()->density = density;
-            GetCapsuleControllerDesc()->scaleCoeff = 1.0f;
-            GetCapsuleControllerDesc()->material = physx.GetPhysics()->CreateMaterialMut(StaticFriction, DynamicFriction, Restitution);
+            if (physx != null)
+            {
+                capsuleControllerDescPtr = new IntPtr(PxCapsuleControllerDesc_new_alloc());
+                GetCapsuleControllerDesc()->height = characterHeight;
+                GetCapsuleControllerDesc()->radius = characterWidth;
+                GetCapsuleControllerDesc()->position = new PxExtendedVec3() { x = position.X, y = position.Y, z = position.Z };
+                GetCapsuleControllerDesc()->upDirection = new PxVec3() { x = 0, y = 1, z = 0 };
+                GetCapsuleControllerDesc()->slopeLimit = slopeLimit;
+                GetCapsuleControllerDesc()->invisibleWallHeight = 0.0f;
+                GetCapsuleControllerDesc()->contactOffset = contactOffset;
+                GetCapsuleControllerDesc()->stepOffset = stepOffset;
+                GetCapsuleControllerDesc()->density = density;
+                GetCapsuleControllerDesc()->scaleCoeff = 1.0f;
+                GetCapsuleControllerDesc()->material = physx.GetPhysics()->CreateMaterialMut(StaticFriction, DynamicFriction, Restitution);
 
-            if (!PxCapsuleControllerDesc_isValid(GetCapsuleControllerDesc()))
-                throw new Exception("Capsule Controller Descriptor is not valid!");
+                if (!PxCapsuleControllerDesc_isValid(GetCapsuleControllerDesc()))
+                    throw new Exception("Capsule Controller Descriptor is not valid!");
 
-            capsuleControllerPtr = new IntPtr(physx.GetControllerManager()->CreateControllerMut((PxControllerDesc*)GetCapsuleControllerDesc()));
+                capsuleControllerPtr = new IntPtr(physx.GetControllerManager()->CreateControllerMut((PxControllerDesc*)GetCapsuleControllerDesc()));
+            }
 
             //((PxRigidBody*)GetCapsuleController()->GetActor())->SetRigidBodyFlagMut(PxRigidBodyFlag.EnableCcd, true);
 
@@ -120,7 +124,7 @@ namespace Engine3D
             {
                 noClip = !noClip;
                 Velocity = Vector3.Zero;
-                if(!noClip)
+                if(!noClip && physx != null)
                 {
                     PxExtendedVec3 vec3 = new PxExtendedVec3() { x = Position.X, y = Position.Y, z = Position.Z };
                     GetCapsuleController()->SetPositionMut(&vec3);
@@ -171,8 +175,11 @@ namespace Engine3D
                 Position = OrigPosition;
                 Velocity = Vector3.Zero;
 
-                PxExtendedVec3 vec3 = new PxExtendedVec3() { x = Position.X, y = Position.Y, z = Position.Z };
-                GetCapsuleController()->SetPositionMut(&vec3);
+                if (physx != null)
+                {
+                    PxExtendedVec3 vec3 = new PxExtendedVec3() { x = Position.X, y = Position.Y, z = Position.Z };
+                    GetCapsuleController()->SetPositionMut(&vec3);
+                }
             }
 
 
@@ -213,7 +220,7 @@ namespace Engine3D
             {
                 newPos = Position + Velocity;
             }
-            else
+            else if (physx != null)
             {
                 PxVec3 disp = new PxVec3() { x = Velocity.X, y = Velocity.Y, z = Velocity.Z };
                 PxFilterData filterData = PxFilterData_new(PxEMPTY.PxEmpty);
@@ -230,6 +237,10 @@ namespace Engine3D
                 }
                 PxExtendedVec3* pxPos = GetCapsuleController()->GetPosition();
                 newPos = new Vector3((float)pxPos->x, (float)pxPos->y, (float)pxPos->z);
+            }
+            else
+            {
+                newPos = Position + Velocity;
             }
 
             mesh.Position = newPos;
@@ -301,4 +312,122 @@ namespace Engine3D
                 Velocity.Z = 0;
         }
     }
+#else
+    public class Character
+    {
+        public float sensitivity = 180f;
+        private float speed = 2f;
+        public float flySpeed = 2.5f;
+        public bool isOnGround = false;
+        public bool noClip = true;
+
+        private bool firstMove = true;
+        public Vector2 lastPos;
+
+        public Vector3 Velocity;
+        public Vector3 Position;
+        private Vector3 OrigPosition;
+
+        public string PStr => $"{Math.Round(Position.X, 2)},{Math.Round(Position.Y, 2)},{Math.Round(Position.Z, 2)}";
+        public string VStr => $"{Math.Round(Velocity.X, 2)},{Math.Round(Velocity.Y, 2)},{Math.Round(Velocity.Z, 2)}";
+        public string LStr => $"Yaw: {Math.Round(camera.GetYaw(), 2)}, Pitch: {Math.Round(camera.GetPitch(), 2)}";
+
+        public Camera camera;
+        public WireframeMesh mesh;
+
+        public Character(WireframeMesh mesh, Physx? physx, Vector3 position, ref Camera camera)
+        {
+            this.mesh = mesh;
+            this.camera = camera;
+            Position = position;
+            OrigPosition = position;
+            camera.SetPosition(position);
+        }
+
+        public void CalculateVelocity(KeyboardState keyboardState, MouseState mouseState, FrameEventArgs args)
+        {
+            float speed_ = speed;
+            float flySpeed_ = flySpeed;
+            if (keyboardState.IsKeyDown(Keys.LeftShift))
+            {
+                speed_ *= 2;
+                flySpeed_ *= 2;
+            }
+
+            if (keyboardState.IsKeyDown(Keys.Space))
+                Velocity.Y += flySpeed_ * (float)args.Time;
+
+            if (keyboardState.IsKeyDown(Keys.LeftControl))
+                Velocity.Y -= flySpeed_ * (float)args.Time;
+
+            if (keyboardState.IsKeyDown(Keys.Enter) || keyboardState.IsKeyDown(Keys.KeyPadEnter))
+            {
+                Position = OrigPosition;
+                Velocity = Vector3.Zero;
+            }
+
+            if (keyboardState.IsKeyDown(Keys.W))
+                Velocity += (camera.front * flySpeed_) * (float)args.Time;
+            if (keyboardState.IsKeyDown(Keys.S))
+                Velocity -= (camera.front * flySpeed_) * (float)args.Time;
+            if (keyboardState.IsKeyDown(Keys.A))
+                Velocity -= (camera.right * flySpeed_) * (float)args.Time;
+            if (keyboardState.IsKeyDown(Keys.D))
+                Velocity += (camera.right * flySpeed_) * (float)args.Time;
+        }
+
+        public void UpdatePosition(KeyboardState keyboardState, MouseState mouseState, FrameEventArgs args)
+        {
+            Vector3 newPos = Position + Velocity;
+            mesh.Position = newPos;
+            Position = newPos;
+        }
+
+        public void AfterUpdate(MouseState mouseState, FrameEventArgs args, GameState gameRunning)
+        {
+            Velocity *= 0.9f;
+            ZeroSmallVelocity();
+
+            camera.SetPosition(Position);
+
+            if (firstMove)
+            {
+                lastPos = new Vector2(mouseState.X, mouseState.Y);
+                firstMove = false;
+            }
+            else
+            {
+                float deltaX = mouseState.X - lastPos.X;
+                float deltaY = mouseState.Y - lastPos.Y;
+
+                if (deltaX != 0 || deltaY != 0)
+                {
+                    lastPos = new Vector2(mouseState.X, mouseState.Y);
+
+                    if (gameRunning == GameState.Running)
+                    {
+                        camera.SetYaw(camera.GetYaw() + deltaX * sensitivity * (float)args.Time);
+                        camera.SetPitch(camera.GetPitch() - deltaY * sensitivity * (float)args.Time);
+                    }
+                }
+            }
+        }
+
+        public List<Line> GetBoundLines()
+        {
+            Capsule c = new Capsule(2f, 8f, new Vector3(0, -4f, 0));
+            return c.GetWireframe(10);
+        }
+
+        private void ZeroSmallVelocity()
+        {
+            if (Velocity.X < 0.0001f && Velocity.X > -0.0001f)
+                Velocity.X = 0;
+            if (Velocity.Y < 0.0001f && Velocity.Y > -0.0001f)
+                Velocity.Y = 0;
+            if (Velocity.Z < 0.0001f && Velocity.Z > -0.0001f)
+                Velocity.Z = 0;
+        }
+    }
+#endif
 }

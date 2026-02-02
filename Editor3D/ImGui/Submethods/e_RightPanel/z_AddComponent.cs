@@ -62,16 +62,27 @@ namespace Engine3D
                                             !alreadyGotBase.Contains(component.baseClass) &&
                                             !alreadyGotClass.Contains(component.name))
                         .ToList();
+#if ENGINE3D_DISABLE_PHYSX
+                    filteredComponents = filteredComponents.Where(component => component.name != "Physics").ToList();
+#endif
 
                     foreach (var component in filteredComponents)
                     {
                         if (ImGui.Button(component.name))
                         {
+#if !ENGINE3D_DISABLE_PHYSX
                             if (component.name == "Physics")
                             {
                                 if (o.GetComponent<BaseMesh>() == null)
                                 {
                                     Engine.consoleManager.AddLog("Can't add physics to an object that doesn't have a mesh!", LogType.Warning);
+                                    showAddComponentWindow = false;
+                                    break;
+                                }
+
+                                if (editorData.physx == null)
+                                {
+                                    Engine.consoleManager.AddLog("Physics is not available on this platform.", LogType.Warning);
                                     showAddComponentWindow = false;
                                     break;
                                 }
@@ -86,6 +97,7 @@ namespace Engine3D
 
                                 o.components.Add((IComponent)comp);
                             }
+#endif
                             if (component.name == "PointLight")
                             {
                                 o.components.Add(new PointLight(o, 0, engine.wireVao, engine.wireVbo, engine.onlyPosShaderProgram.programId, engine.windowSize, ref engine.mainCamera_));

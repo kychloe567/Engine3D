@@ -22,6 +22,8 @@ namespace Engine3D
         private static Dictionary<string, int> fileFolderCount = new Dictionary<string, int>();
         private static bool first = true;
 
+        private static string AssetRoot => Path.Combine(AppContext.BaseDirectory, "Assets");
+
         public static Stream? GetFileStream(string fullpath)
         {
             Stream? s = Stream.Null;
@@ -55,7 +57,7 @@ namespace Engine3D
 
         public static string GetFilePath(string fileName, string folder)
         {
-            string filePath = Environment.CurrentDirectory + "\\Assets\\" + folder + "\\" + fileName;
+            string filePath = Path.Combine(AssetRoot, folder, fileName);
             if (File.Exists(filePath))
                 return filePath;
 
@@ -118,7 +120,7 @@ namespace Engine3D
             {
                 foreach (var type in Enum.GetValues(typeof(FileType)))
                 {
-                    string fileLocation = Environment.CurrentDirectory + "\\Assets\\" + type.ToString();
+                    string fileLocation = Path.Combine(AssetRoot, type.ToString());
 
                     RecursiveAllAssets(fileLocation, (FileType)type, ref assetManager, true);
                 }
@@ -128,7 +130,7 @@ namespace Engine3D
             {
                 foreach (var type in Enum.GetValues(typeof(FileType)))
                 {
-                    string fileLocation = Environment.CurrentDirectory + "\\Assets\\" + type.ToString();
+                    string fileLocation = Path.Combine(AssetRoot, type.ToString());
 
                     RecursiveAllAssets(fileLocation, (FileType)type, ref assetManager, false);
                 }
@@ -233,16 +235,12 @@ namespace Engine3D
         public static string GetPathAfterAssetFolder(string fullPath, FileType fileType = FileType.Models)
         {
             // Find the index of the "Models" folder in the path
-            int index = fullPath.IndexOf(fileType.ToString());
+            string typeName = fileType.ToString();
+            string[] parts = fullPath.Split(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
+            int index = Array.FindIndex(parts, p => string.Equals(p, typeName, StringComparison.OrdinalIgnoreCase));
+            if (index >= 0 && index + 1 < parts.Length)
+                return string.Join(Path.DirectorySeparatorChar, parts[(index + 1)..]);
 
-            // If "Models" is found, extract everything after it
-            if (index >= 0)
-            {
-                // Extract everything after "Models" and the trailing backslash
-                return fullPath.Substring(index + fileType.ToString().Length + 1); // +1 to remove the trailing backslash
-            }
-
-            // If "Models" is not found, return an empty string or the original path
             return string.Empty;
         }
 
@@ -270,7 +268,7 @@ namespace Engine3D
             if (folderPath == null || folderPath == "")
                 return;
 
-            string folderFullPath = Environment.CurrentDirectory + "\\Assets\\" + folderPath;
+            string folderFullPath = Path.Combine(AssetRoot, folderPath);
             if (Directory.Exists(folderFullPath))
             {
                 bool success = false;

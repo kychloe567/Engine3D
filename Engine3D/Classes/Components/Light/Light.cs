@@ -3,8 +3,6 @@ using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Text;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;

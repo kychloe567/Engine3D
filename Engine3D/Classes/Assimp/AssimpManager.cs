@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
+using System.IO;
 using System.Reflection;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
@@ -13,7 +13,7 @@ using Assimp.Unmanaged;
 using FontStashSharp;
 using HtmlAgilityPack;
 using OpenTK.Mathematics;
-using static OpenTK.Graphics.OpenGL.GL;
+using static OpenTK.Graphics.OpenGL4.GL;
 
 namespace Engine3D
 {
@@ -30,14 +30,14 @@ namespace Engine3D
 
         public void ProcessAnimation(string relativeAnimationPath)
         {
-            string filePath = Environment.CurrentDirectory + "\\Assets\\" + FileType.Animations.ToString() + "\\" + relativeAnimationPath;
+            string filePath = Path.Combine(AppContext.BaseDirectory, "Assets", FileType.Animations.ToString(), relativeAnimationPath);
             if (!File.Exists(filePath))
             {
                 Engine.consoleManager.AddLog("File '" + relativeAnimationPath + "' not found!", LogType.Warning);
                 return;
             }
 
-            var scene = context.ImportFile("Assets\\" + FileType.Animations.ToString() + "\\" + relativeAnimationPath);
+            var scene = context.ImportFile(filePath);
 
             throw new NotImplementedException();
 
@@ -104,14 +104,14 @@ namespace Engine3D
 
             Color4 color = new Color4(cr, cg, cb, ca);
 
-            string filePath = Environment.CurrentDirectory + "\\Assets\\" + FileType.Models.ToString() + "\\" + relativeModelPath;
+            string filePath = Path.Combine(AppContext.BaseDirectory, "Assets", FileType.Models.ToString(), relativeModelPath);
             if (!File.Exists(filePath))
             {
                 Engine.consoleManager.AddLog("File '" + relativeModelPath + "' not found!", LogType.Warning);
                 return null;
             }
 
-            var scene = context.ImportFile("Assets\\" + FileType.Models.ToString() + "\\" + relativeModelPath, 
+            var scene = context.ImportFile(filePath, 
                 /*PostProcessSteps.LimitBoneWeights |*/ PostProcessSteps.Triangulate | PostProcessSteps.JoinIdenticalVertices);
 
             foreach (var anim in scene.Animations)

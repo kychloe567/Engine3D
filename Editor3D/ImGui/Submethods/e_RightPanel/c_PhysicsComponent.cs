@@ -1,5 +1,4 @@
 ﻿using ImGuiNET;
-using MagicPhysX;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +11,14 @@ namespace Engine3D
     {
         public void PhysicsComponent(IComponent c, ref ImGuiStylePtr style, ref List<IComponent> toRemoveComp, ref Physics physics, ref Object o)
         {
+#if ENGINE3D_DISABLE_PHYSX
+            ImGui.SetNextItemOpen(true, ImGuiCond.Once);
+            if (ImGui.TreeNode("Physics"))
+            {
+                ImGui.TextDisabled("Physics is disabled on this platform.");
+                ImGui.TreePop();
+            }
+#else
             ImGui.SetNextItemOpen(true, ImGuiCond.Once);
             if (ImGui.TreeNode("Physics"))
             {
@@ -101,6 +108,7 @@ namespace Engine3D
 
                 ImGui.TreePop();
             }
+#endif
         }
     }
 }

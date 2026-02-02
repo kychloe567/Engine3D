@@ -4,8 +4,10 @@ using OpenTK.Mathematics;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Engine3D
 {
@@ -31,6 +33,11 @@ namespace Engine3D
         protected int _windowHeight;
 
         protected System.Numerics.Vector2 _scaleFactor = System.Numerics.Vector2.One;
+        private bool _clipboardInitialized = false;
+        private static SetClipboardTextDelegate? _setClipboardDelegate;
+        private static GetClipboardTextDelegate? _getClipboardDelegate;
+        private static GCHandle _clipboardHandle;
+        private static byte[]? _clipboardBuffer;
 
         protected static bool KHRDebugAvailable = false;
 
@@ -50,10 +57,22 @@ namespace Engine3D
         protected ImFontPtr timesbd13;
         protected ImFontPtr timesbd18;
 
-        public unsafe BaseImGuiController(int width, int height)
+        private bool _initialized = false;
+
+        public BaseImGuiController(int width, int height)
         {
             _windowWidth = width;
             _windowHeight = height;
+        }
+
+        public unsafe void Initialize()
+        {
+            if (_initialized)
+                return;
+
+            Console.WriteLine("ImGui: initialize start");
+            EnsureImGuiNativeLibraryLoaded();
+            Console.WriteLine("ImGui: native library loaded");
 
             int major = GL.GetInteger(GetPName.MajorVersion);
             int minor = GL.GetInteger(GetPName.MinorVersion);
@@ -61,6 +80,8 @@ namespace Engine3D
             GLVersion = major * 100 + minor * 10;
 
             KHRDebugAvailable = (major == 4 && minor >= 3) || IsExtensionSupported("KHR_debug");
+            if (OperatingSystem.IsMacOS())
+                KHRDebugAvailable = false;
 
             CompatibilityProfile = (GL.GetInteger((GetPName)All.ContextProfileMask) & (int)All.ContextCompatibilityProfileBit) != 0;
 
@@ -68,6 +89,7 @@ namespace Engine3D
             ImGui.SetCurrentContext(context);
             var io = ImGui.GetIO();
             io.Fonts.AddFontDefault();
+            Console.WriteLine("ImGui: context created");
 
             #region Fonts
             fontStreamDict = FileManager.GetFontStreams();
@@ -93,12 +115,48 @@ namespace Engine3D
             io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
 
             CreateDeviceResources();
+            Console.WriteLine("ImGui: device resources created");
             SetKeyMappings();
 
             SetPerFrameImGuiData(1f / 60f);
 
             ImGui.NewFrame();
             _frameBegun = false;
+            _initialized = true;
+            Console.WriteLine("ImGui: initialize done");
+            SetupClipboard();
+        }
+
+        private static void EnsureImGuiNativeLibraryLoaded()
+        {
+            try
+            {
+                string baseDir = AppContext.BaseDirectory;
+                string libName = OperatingSystem.IsWindows() ? "cimgui.dll"
+                    : OperatingSystem.IsMacOS() ? "libcimgui.dylib"
+                    : "libcimgui.so";
+                string[] candidatePaths =
+                {
+                    Path.Combine(baseDir, libName),
+                    Path.Combine(baseDir, "osx-arm64", libName),
+                    Path.Combine(baseDir, "runtimes", "osx", "native", libName)
+                };
+
+                foreach (var path in candidatePaths)
+                {
+                    if (File.Exists(path))
+                    {
+                        NativeLibrary.Load(path);
+                        return;
+                    }
+                }
+
+                NativeLibrary.TryLoad("cimgui", out _);
+            }
+            catch
+            {
+                // Let ImGui.NET throw a clearer exception if loading fails later.
+            }
         }
 
         public void WindowResized(int width, int height)
@@ -291,11 +349,24 @@ namespace Engine3D
         /// <summary>
         /// Updates ImGui input and IO configuration state.
         /// </summary>
-        public void Update(GameWindow wnd, float deltaSeconds)
+        public unsafe void Update(GameWindow wnd, float deltaSeconds)
         {
             if (_frameBegun)
             {
                 ImGui.Render();
+            }
+
+            var windowSize = wnd.ClientSize;
+            GLFW.GetFramebufferSize(wnd.WindowPtr, out int fbWidth, out int fbHeight);
+            _windowWidth = windowSize.X;
+            _windowHeight = windowSize.Y;
+            _scaleFactor = new System.Numerics.Vector2(
+                windowSize.X > 0 ? (float)fbWidth / windowSize.X : 1f,
+                windowSize.Y > 0 ? (float)fbHeight / windowSize.Y : 1f);
+
+            if (!_clipboardInitialized)
+            {
+                SetupClipboard();
             }
 
             SetPerFrameImGuiData(deltaSeconds);
@@ -313,8 +384,8 @@ namespace Engine3D
         {
             ImGuiIOPtr io = ImGui.GetIO();
             io.DisplaySize = new System.Numerics.Vector2(
-                _windowWidth / _scaleFactor.X,
-                _windowHeight / _scaleFactor.Y);
+                _windowWidth,
+                _windowHeight);
             io.DisplayFramebufferScale = _scaleFactor;
             io.DeltaTime = deltaSeconds; // DeltaTime is in seconds.
         }
@@ -370,6 +441,51 @@ namespace Engine3D
 
             io.MouseWheel = offset.Y;
             io.MouseWheelH = offset.X;
+        }
+
+        private void SetupClipboard()
+        {
+            if (_clipboardInitialized)
+                return;
+
+            var io = ImGui.GetIO();
+            _setClipboardDelegate = ClipboardSet;
+            _getClipboardDelegate = ClipboardGet;
+            io.SetClipboardTextFn = Marshal.GetFunctionPointerForDelegate(_setClipboardDelegate);
+            io.GetClipboardTextFn = Marshal.GetFunctionPointerForDelegate(_getClipboardDelegate);
+            io.ClipboardUserData = IntPtr.Zero;
+            _clipboardInitialized = true;
+        }
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private unsafe delegate void SetClipboardTextDelegate(IntPtr userData, IntPtr text);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private unsafe delegate IntPtr GetClipboardTextDelegate(IntPtr userData);
+
+        private static void ClipboardSet(IntPtr userData, IntPtr text)
+        {
+            if (text == IntPtr.Zero)
+                return;
+
+            string value = Marshal.PtrToStringUTF8(text) ?? string.Empty;
+            if (Engine.ActiveGameWindow != null)
+            {
+                Engine.ActiveGameWindow.ClipboardString = value;
+            }
+        }
+
+        private static IntPtr ClipboardGet(IntPtr userData)
+        {
+            string value = Engine.ActiveGameWindow?.ClipboardString ?? string.Empty;
+            byte[] utf8 = Encoding.UTF8.GetBytes(value + "\0");
+
+            if (_clipboardHandle.IsAllocated)
+                _clipboardHandle.Free();
+
+            _clipboardBuffer = utf8;
+            _clipboardHandle = GCHandle.Alloc(_clipboardBuffer, GCHandleType.Pinned);
+            return _clipboardHandle.AddrOfPinnedObject();
         }
 
         protected static void SetKeyMappings()
@@ -525,7 +641,8 @@ namespace Engine3D
 
                         // We do _windowHeight - (int)clip.W instead of (int)clip.Y because gl has flipped Y when it comes to these coordinates
                         var clip = pcmd.ClipRect;
-                        GL.Scissor((int)clip.X, _windowHeight - (int)clip.W, (int)(clip.Z - clip.X), (int)(clip.W - clip.Y));
+                        float framebufferHeight = _windowHeight * _scaleFactor.Y;
+                        GL.Scissor((int)clip.X, (int)(framebufferHeight - clip.W), (int)(clip.Z - clip.X), (int)(clip.W - clip.Y));
 
                         if ((io.BackendFlags & ImGuiBackendFlags.RendererHasVtxOffset) != 0)
                         {

@@ -99,7 +99,7 @@ namespace Engine3D
             }
         }
 
-        public Physics(ref Physx physx)
+        public Physics(Physx physx)
         {
             this.physx = physx;
         }

@@ -6,7 +6,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+#if WINDOWS
 using System.Windows.Forms;
+#endif
 
 namespace Engine3D
 {
@@ -28,6 +30,7 @@ namespace Engine3D
                     }
                     if (ImGui.MenuItem("Open", "Ctrl+O"))
                     {
+#if WINDOWS
                         using (var dialog = new OpenFileDialog())
                         {
                             dialog.Title = "Select a project";
@@ -43,9 +46,13 @@ namespace Engine3D
                             editorData.recalculateObjects = true;
                             engineData.gizmoManager = engine.GetGizmoManager();
                         }
+#else
+                        Engine.consoleManager.AddLog("Open dialog is not available on this platform.", LogType.Warning);
+#endif
                     }
                     if (ImGui.MenuItem("Save", "Ctrl+S"))
                     {
+#if WINDOWS
                         using (var dialog = new SaveFileDialog())
                         {
                             dialog.Title = "Save the project";
@@ -58,6 +65,9 @@ namespace Engine3D
                                 engine.SaveScene(dialog.FileName);
                             }
                         }
+#else
+                        Engine.consoleManager.AddLog("Save dialog is not available on this platform.", LogType.Warning);
+#endif
                     }
                     ImGui.Dummy(new System.Numerics.Vector2(0, 5));
                     ImGui.EndMenu();

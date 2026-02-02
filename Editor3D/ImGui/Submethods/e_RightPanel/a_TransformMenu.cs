@@ -61,8 +61,10 @@ namespace Engine3D
                             baseMesh.recalculate = true;
                             baseMesh.RecalculateModelMatrix(new bool[] { true, false, false });
                         }
+#if !ENGINE3D_DISABLE_PHYSX
                         if (o.GetComponent<Physics>() is Physics p)
                             p.UpdatePhysxPositionAndRotation(o.transformation);
+#endif
                         if (o.GetComponent<Light>() is Light light)
                             light.RecalculateShadows();
                     }
@@ -104,8 +106,10 @@ namespace Engine3D
                             baseMesh.recalculate = true;
                             baseMesh.RecalculateModelMatrix(new bool[] { true, false, false });
                         }
+#if !ENGINE3D_DISABLE_PHYSX
                         if (o.GetComponent<Physics>() is Physics p)
                             p.UpdatePhysxPositionAndRotation(o.transformation);
+#endif
                         if (o.GetComponent<Light>() is Light light)
                             light.RecalculateShadows();
                     }
@@ -147,8 +151,10 @@ namespace Engine3D
                             baseMesh.recalculate = true;
                             baseMesh.RecalculateModelMatrix(new bool[] { true, false, false });
                         }
+#if !ENGINE3D_DISABLE_PHYSX
                         if (o.GetComponent<Physics>() is Physics p)
                             p.UpdatePhysxPositionAndRotation(o.transformation);
+#endif
                         if (o.GetComponent<Light>() is Light light)
                             light.RecalculateShadows();
                     }
@@ -202,8 +208,10 @@ namespace Engine3D
                             baseMesh.recalculate = true;
                             baseMesh.RecalculateModelMatrix(new bool[] { false, true, false });
                         }
+#if !ENGINE3D_DISABLE_PHYSX
                         if (o.GetComponent<Physics>() is Physics p)
                             p.UpdatePhysxPositionAndRotation(o.transformation);
+#endif
                         if (o.GetComponent<Light>() is Light light)
                             light.RecalculateShadows();
                     }
@@ -249,8 +257,10 @@ namespace Engine3D
                             baseMesh.recalculate = true;
                             baseMesh.RecalculateModelMatrix(new bool[] { false, true, false });
                         }
+#if !ENGINE3D_DISABLE_PHYSX
                         if (o.GetComponent<Physics>() is Physics p)
                             p.UpdatePhysxPositionAndRotation(o.transformation);
+#endif
                         if (o.GetComponent<Light>() is Light light)
                             light.RecalculateShadows();
                     }
@@ -296,8 +306,10 @@ namespace Engine3D
                             baseMesh.recalculate = true;
                             baseMesh.RecalculateModelMatrix(new bool[] { false, true, false });
                         }
+#if !ENGINE3D_DISABLE_PHYSX
                         if (o.GetComponent<Physics>() is Physics p)
                             p.UpdatePhysxPositionAndRotation(o.transformation);
+#endif
                         if (o.GetComponent<Light>() is Light light)
                             light.RecalculateShadows();
                     }
@@ -344,8 +356,10 @@ namespace Engine3D
                             baseMesh.recalculate = true;
                             baseMesh.RecalculateModelMatrix(new bool[] { false, false, true });
                         }
+#if !ENGINE3D_DISABLE_PHYSX
                         if (o.GetComponent<Physics>() is Physics p)
                             p.UpdatePhysxPositionAndRotation(o.transformation);
+#endif
                     }
                 }
                 ImGui.SameLine();
@@ -385,8 +399,10 @@ namespace Engine3D
                             baseMesh.recalculate = true;
                             baseMesh.RecalculateModelMatrix(new bool[] { false, false, true });
                         }
+#if !ENGINE3D_DISABLE_PHYSX
                         if (o.GetComponent<Physics>() is Physics p)
                             p.UpdatePhysxPositionAndRotation(o.transformation);
+#endif
                     }
                 }
                 ImGui.SameLine();
@@ -426,8 +442,10 @@ namespace Engine3D
                             baseMesh.recalculate = true;
                             baseMesh.RecalculateModelMatrix(new bool[] { false, false, true });
                         }
+#if !ENGINE3D_DISABLE_PHYSX
                         if (o.GetComponent<Physics>() is Physics p)
                             p.UpdatePhysxPositionAndRotation(o.transformation);
+#endif
                     }
                 }
                 #endregion

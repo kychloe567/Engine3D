@@ -2,7 +2,6 @@
 using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;

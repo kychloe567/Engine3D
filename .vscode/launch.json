@@ -1,0 +1,14 @@
+{
+    "configurations": [
+    {
+        "name": "C#: Editor3D Debug",
+        "type": "coreclr",
+        "request": "launch",
+        "preLaunchTask": "build",
+        "program": "${workspaceFolder}/Editor3D/bin/Debug/net8.0/osx-arm64/Editor3D.dll",
+        "cwd": "${workspaceFolder}/Editor3D/bin/Debug/net8.0/osx-arm64",
+        "console": "integratedTerminal",
+        "stopAtEntry": false
+    }
+    ]
+}

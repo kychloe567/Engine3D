@@ -33,6 +33,11 @@ namespace Engine3D
 
         private void InsertRec(List<string> dirs, Asset asset)
         {
+            if (dirs.Count == 0)
+            {
+                assets.Add(asset);
+                return;
+            }
             if (dirs.Count == 1)
             {
                 AssetFolder a = GetAssetFolder(dirs[0]);
@@ -112,7 +117,7 @@ namespace Engine3D
                 return new List<string>();
 
             List<string> dirs = new List<string>();
-            var split = fullDirPath.Split('\\');
+            var split = fullDirPath.Split(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
 
             bool add = false;
             for (int i = 0; i < split.Length; i++)
@@ -121,7 +126,7 @@ namespace Engine3D
                 {
                     dirs.Add(split[i]);
                 }
-                else if (split[i] == asset.fileType.ToString())
+                else if (string.Equals(split[i], asset.fileType.ToString(), StringComparison.OrdinalIgnoreCase))
                 {
                     add = true;
                     dirs.Add(split[i]);
@@ -138,7 +143,7 @@ namespace Engine3D
                 return folders[name];
 
             AssetFolder a = new AssetFolder(name);
-            a.path = path + "\\" + a.name;
+            a.path = string.IsNullOrEmpty(path) ? a.name : Path.Combine(path, a.name);
             a.parentFolder = this;
             folders.Add(name, a);
             return folders[name];

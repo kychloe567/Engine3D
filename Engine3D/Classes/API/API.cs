@@ -436,7 +436,7 @@ namespace Engine3D
             onlyPosShaderProgram.Use();
 
             Vector3 characterPos = new Vector3(-5, 10, 0);
-            character = new Character(new WireframeMesh(wireVao, wireVbo, onlyPosShaderProgram.programId, ref mainCamera_), ref physx, characterPos, ref mainCamera_);
+            character = new Character(new WireframeMesh(wireVao, wireVbo, onlyPosShaderProgram.programId, ref mainCamera_), physx, characterPos, ref mainCamera_);
 
             gizmoManager = new GizmoManager(meshVao, meshVbo, shaderProgram, ref mainCamera_);
 

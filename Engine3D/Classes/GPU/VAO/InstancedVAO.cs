@@ -30,7 +30,7 @@ namespace Engine3D
             Bind();
             vbo.Bind();
 
-            GL.EnableVertexArrayAttrib(id, location);
+            GL.EnableVertexAttribArray(location);
             GL.VertexAttribPointer(location, size, VertexAttribPointerType.Float, false, vertexSize, currentOffset * sizeof(float));
             currentOffset += size;
 
@@ -42,7 +42,7 @@ namespace Engine3D
             Bind();
             vbo.Bind();
 
-            GL.EnableVertexArrayAttrib(id, location);
+            GL.EnableVertexAttribArray(location);
             GL.VertexAttribPointer(location, size, VertexAttribPointerType.Float, false, instanceSize, currentInstanceOffset * sizeof(float));
             GL.VertexAttribDivisor(location, divisor);
             currentInstanceOffset += size;

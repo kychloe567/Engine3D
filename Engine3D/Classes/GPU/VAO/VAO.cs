@@ -26,7 +26,7 @@ namespace Engine3D
             Bind();
             vbo.Bind();
 
-            GL.EnableVertexArrayAttrib(id, location);
+            GL.EnableVertexAttribArray(location);
             GL.VertexAttribPointer(location, size, VertexAttribPointerType.Float, false, vertexSize, currentOffset * sizeof(float));
             currentOffset += size;
 

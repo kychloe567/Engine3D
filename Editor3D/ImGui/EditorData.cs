@@ -32,7 +32,7 @@ namespace Engine3D
         public Vector2 gizmoWindowPos = Vector2.Zero;
         public Vector2 gizmoWindowSize = Vector2.Zero;
 
-        public Physx physx;
+        public Physx? physx;
 
         public bool runParticles = false;
         #endregion
