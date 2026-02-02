@@ -33,12 +33,9 @@ namespace Engine3D
 
         public void Bind()
         {
-            if (Engine.GLState.vboBound != id)
-            {
-                GL.BindBuffer(BufferTarget.ArrayBuffer, id);
-                Engine.GLState.vboBound = id;
-                Engine.GLState.vboTarget = BufferTarget.ArrayBuffer;
-            }
+            GL.BindBuffer(BufferTarget.ArrayBuffer, id);
+            Engine.GLState.vboBound = id;
+            Engine.GLState.vboTarget = BufferTarget.ArrayBuffer;
         }
 
         public void Unbind()

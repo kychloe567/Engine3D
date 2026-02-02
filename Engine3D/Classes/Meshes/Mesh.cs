@@ -201,30 +201,12 @@ namespace Engine3D
             uniformLocations.Add("useAO", GL.GetUniformLocation(shaderProgramId, "useAO"));
             uniformLocations.Add("useRough", GL.GetUniformLocation(shaderProgramId, "useRough"));
             uniformLocations.Add("useMetal", GL.GetUniformLocation(shaderProgramId, "useMetal"));
-            if (texture != null)
-            {
-                uniformLocations.Add("textureSampler", GL.GetUniformLocation(shaderProgramId, "textureSampler"));
-                if (textureNormal != null)
-                {
-                    uniformLocations.Add("textureSamplerNormal", GL.GetUniformLocation(shaderProgramId, "textureSamplerNormal"));
-                }
-                if (textureHeight != null)
-                {
-                    uniformLocations.Add("textureSamplerHeight", GL.GetUniformLocation(shaderProgramId, "textureSamplerHeight"));
-                }
-                if (textureAO != null)
-                {
-                    uniformLocations.Add("textureSamplerAO", GL.GetUniformLocation(shaderProgramId, "textureSamplerAO"));
-                }
-                if (textureRough != null)
-                {
-                    uniformLocations.Add("textureSamplerRough", GL.GetUniformLocation(shaderProgramId, "textureSamplerRough"));
-                }
-                if (textureMetal != null)
-                {
-                    uniformLocations.Add("textureSamplerMetal", GL.GetUniformLocation(shaderProgramId, "textureSamplerMetal"));
-                }
-            }
+            uniformLocations.Add("textureSampler", GL.GetUniformLocation(shaderProgramId, "textureSampler"));
+            uniformLocations.Add("textureSamplerNormal", GL.GetUniformLocation(shaderProgramId, "textureSamplerNormal"));
+            uniformLocations.Add("textureSamplerHeight", GL.GetUniformLocation(shaderProgramId, "textureSamplerHeight"));
+            uniformLocations.Add("textureSamplerAO", GL.GetUniformLocation(shaderProgramId, "textureSamplerAO"));
+            uniformLocations.Add("textureSamplerRough", GL.GetUniformLocation(shaderProgramId, "textureSamplerRough"));
+            uniformLocations.Add("textureSamplerMetal", GL.GetUniformLocation(shaderProgramId, "textureSamplerMetal"));
             #endregion
         }
 
@@ -250,30 +232,12 @@ namespace Engine3D
             uniformAnimLocations.Add("useAO", GL.GetUniformLocation(shader.programId, "useAO"));
             uniformAnimLocations.Add("useRough", GL.GetUniformLocation(shader.programId, "useRough"));
             uniformAnimLocations.Add("useMetal", GL.GetUniformLocation(shader.programId, "useMetal"));
-            if (texture != null)
-            {
-                uniformAnimLocations.Add("textureSampler", GL.GetUniformLocation(shader.programId, "textureSampler"));
-                if (textureNormal != null)
-                {
-                    uniformAnimLocations.Add("textureSamplerNormal", GL.GetUniformLocation(shader.programId, "textureSamplerNormal"));
-                }
-                if (textureHeight != null)
-                {
-                    uniformAnimLocations.Add("textureSamplerHeight", GL.GetUniformLocation(shader.programId, "textureSamplerHeight"));
-                }
-                if (textureAO != null)
-                {
-                    uniformAnimLocations.Add("textureSamplerAO", GL.GetUniformLocation(shader.programId, "textureSamplerAO"));
-                }
-                if (textureRough != null)
-                {
-                    uniformAnimLocations.Add("textureSamplerRough", GL.GetUniformLocation(shader.programId, "textureSamplerRough"));
-                }
-                if (textureMetal != null)
-                {
-                    uniformAnimLocations.Add("textureSamplerMetal", GL.GetUniformLocation(shader.programId, "textureSamplerMetal"));
-                }
-            }
+            uniformAnimLocations.Add("textureSampler", GL.GetUniformLocation(shader.programId, "textureSampler"));
+            uniformAnimLocations.Add("textureSamplerNormal", GL.GetUniformLocation(shader.programId, "textureSamplerNormal"));
+            uniformAnimLocations.Add("textureSamplerHeight", GL.GetUniformLocation(shader.programId, "textureSamplerHeight"));
+            uniformAnimLocations.Add("textureSamplerAO", GL.GetUniformLocation(shader.programId, "textureSamplerAO"));
+            uniformAnimLocations.Add("textureSamplerRough", GL.GetUniformLocation(shader.programId, "textureSamplerRough"));
+            uniformAnimLocations.Add("textureSamplerMetal", GL.GetUniformLocation(shader.programId, "textureSamplerMetal"));
             #endregion
         }
 
@@ -302,30 +266,12 @@ namespace Engine3D
             GL.Uniform1(uniformLocations["useBillboarding"], useBillboarding);
             GL.Uniform1(uniformLocations["useShading"], useShading ? 1 : 0);
 
-            if (texture != null)
-            {
-                GL.Uniform1(uniformLocations["textureSampler"], texture.TextureUnit);
-                if (textureNormal != null)
-                {
-                    GL.Uniform1(uniformLocations["textureSamplerNormal"], textureNormal.TextureUnit);
-                }
-                if (textureHeight != null)
-                {
-                    GL.Uniform1(uniformLocations["textureSamplerHeight"], textureHeight.TextureUnit);
-                }
-                if (textureAO != null)
-                {
-                    GL.Uniform1(uniformLocations["textureSamplerAO"], textureAO.TextureUnit);
-                }
-                if (textureRough != null)
-                {
-                    GL.Uniform1(uniformLocations["textureSamplerRough"], textureRough.TextureUnit);
-                }
-                if (textureMetal != null)
-                {
-                    GL.Uniform1(uniformLocations["textureSamplerMetal"], textureMetal.TextureUnit);
-                }
-            }
+            if (uniformLocations["textureSampler"] != -1) GL.Uniform1(uniformLocations["textureSampler"], texture?.TextureUnit ?? 4);
+            if (uniformLocations["textureSamplerNormal"] != -1) GL.Uniform1(uniformLocations["textureSamplerNormal"], textureNormal?.TextureUnit ?? 4);
+            if (uniformLocations["textureSamplerHeight"] != -1) GL.Uniform1(uniformLocations["textureSamplerHeight"], textureHeight?.TextureUnit ?? 4);
+            if (uniformLocations["textureSamplerAO"] != -1) GL.Uniform1(uniformLocations["textureSamplerAO"], textureAO?.TextureUnit ?? 4);
+            if (uniformLocations["textureSamplerRough"] != -1) GL.Uniform1(uniformLocations["textureSamplerRough"], textureRough?.TextureUnit ?? 4);
+            if (uniformLocations["textureSamplerMetal"] != -1) GL.Uniform1(uniformLocations["textureSamplerMetal"], textureMetal?.TextureUnit ?? 4);
 
             if (uniformLocations["useTexture"] != -1) GL.Uniform1(uniformLocations["useTexture"], texture != null ? 1 : 0);
             if(uniformLocations["useNormal"] != -1) GL.Uniform1(uniformLocations["useNormal"], textureNormal != null ? 1 : 0);
@@ -347,30 +293,12 @@ namespace Engine3D
             GL.Uniform3(uniformAnimLocations["cameraPosition"], camera.GetPosition());
             GL.Uniform1(uniformAnimLocations["useBillboarding"], useBillboarding);
             GL.Uniform1(uniformAnimLocations["useShading"], useShading ? 1 : 0);
-            if (texture != null)
-            {
-                GL.Uniform1(uniformAnimLocations["textureSampler"], texture.TextureUnit);
-                if (textureNormal != null)
-                {
-                    GL.Uniform1(uniformAnimLocations["textureSamplerNormal"], textureNormal.TextureUnit);
-                }
-                if (textureHeight != null)
-                {
-                    GL.Uniform1(uniformAnimLocations["textureSamplerHeight"], textureHeight.TextureUnit);
-                }
-                if (textureAO != null)
-                {
-                    GL.Uniform1(uniformAnimLocations["textureSamplerAO"], textureAO.TextureUnit);
-                }
-                if (textureRough != null)
-                {
-                    GL.Uniform1(uniformAnimLocations["textureSamplerRough"], textureRough.TextureUnit);
-                }
-                if (textureMetal != null)
-                {
-                    GL.Uniform1(uniformAnimLocations["textureSamplerMetal"], textureMetal.TextureUnit);
-                }
-            }
+            if (uniformAnimLocations["textureSampler"] != -1) GL.Uniform1(uniformAnimLocations["textureSampler"], texture?.TextureUnit ?? 4);
+            if (uniformAnimLocations["textureSamplerNormal"] != -1) GL.Uniform1(uniformAnimLocations["textureSamplerNormal"], textureNormal?.TextureUnit ?? 4);
+            if (uniformAnimLocations["textureSamplerHeight"] != -1) GL.Uniform1(uniformAnimLocations["textureSamplerHeight"], textureHeight?.TextureUnit ?? 4);
+            if (uniformAnimLocations["textureSamplerAO"] != -1) GL.Uniform1(uniformAnimLocations["textureSamplerAO"], textureAO?.TextureUnit ?? 4);
+            if (uniformAnimLocations["textureSamplerRough"] != -1) GL.Uniform1(uniformAnimLocations["textureSamplerRough"], textureRough?.TextureUnit ?? 4);
+            if (uniformAnimLocations["textureSamplerMetal"] != -1) GL.Uniform1(uniformAnimLocations["textureSamplerMetal"], textureMetal?.TextureUnit ?? 4);
 
             GL.Uniform1(uniformAnimLocations["useTexture"], texture != null ? 1 : 0);
             GL.Uniform1(uniformAnimLocations["useNormal"], textureNormal != null ? 1 : 0);
@@ -509,6 +437,8 @@ namespace Engine3D
             shader.Use();
 
             SendUniforms();
+            while (GL.GetError() != OpenTK.Graphics.OpenGL4.ErrorCode.NoError) { }
+            Engine.InstanceCheckGLErrorOnce("mesh uniforms");
 
             foreach (MeshData mesh in model.meshes)
             {
@@ -536,7 +466,29 @@ namespace Engine3D
 
                         ibo_.Buffer(mesh.visibleIndices);
                         vbo_.Buffer(mesh.visibleVerticesData);
+                        GL.BindVertexArray(Vao.id);
+                        GL.BindBuffer(BufferTarget.ElementArrayBuffer, ibo_.id);
                         GL.DrawElements(PrimitiveType.Triangles, mesh.visibleIndices.Count, DrawElementsType.UnsignedInt, 0);
+                        if (Engine.InstanceCheckGLErrorOnce("mesh draw elements"))
+                        {
+                            int boundVao = GL.GetInteger(GetPName.VertexArrayBinding);
+                            int boundEbo = GL.GetInteger(GetPName.ElementArrayBufferBinding);
+                            int currentProgram = GL.GetInteger(GetPName.CurrentProgram);
+                            GL.GetProgram(shaderProgramId, GetProgramParameterName.LinkStatus, out int linked);
+                            GL.ValidateProgram(shaderProgramId);
+                            GL.GetProgram(shaderProgramId, GetProgramParameterName.ValidateStatus, out int validated);
+                            int vboSize = 0;
+                            int eboSize = 0;
+                            GL.GetBufferParameter(BufferTarget.ArrayBuffer, BufferParameterName.BufferSize, out vboSize);
+                            GL.GetBufferParameter(BufferTarget.ElementArrayBuffer, BufferParameterName.BufferSize, out eboSize);
+                            int texUnit = texture != null ? texture.TextureUnit : -1;
+                            Console.WriteLine($"Mesh draw state: vao={Vao.id} boundVao={boundVao} ebo={ibo_.id} boundEbo={boundEbo} vbo={vbo_.id} program={currentProgram} shaderProgram={shaderProgramId} linked={linked} validated={validated} indices={mesh.visibleIndices.Count} verts={mesh.visibleVerticesData.Count} vboSize={vboSize} eboSize={eboSize} texUnit={texUnit} shadowUnits={Engine.shadowMapArray.smallShadowMapArrayUnit},{Engine.shadowMapArray.mediumShadowMapArrayUnit},{Engine.shadowMapArray.largeShadowMapArrayUnit},{Engine.shadowMapArray.cubeShadowMapArrayUnit}");
+                            if (linked == 0 || validated == 0)
+                            {
+                                string infoLog = GL.GetProgramInfoLog(shaderProgramId);
+                                Console.WriteLine($"Mesh program info log: {infoLog}");
+                            }
+                        }
                         continue;
                     }
                 }
@@ -567,7 +519,29 @@ namespace Engine3D
 
                 ibo_.Buffer(mesh.visibleIndices);
                 vbo_.Buffer(mesh.visibleVerticesData);
+                GL.BindVertexArray(Vao.id);
+                GL.BindBuffer(BufferTarget.ElementArrayBuffer, ibo_.id);
                 GL.DrawElements(PrimitiveType.Triangles, mesh.visibleIndices.Count, DrawElementsType.UnsignedInt, 0);
+                if (Engine.InstanceCheckGLErrorOnce("mesh draw elements"))
+                {
+                    int boundVao = GL.GetInteger(GetPName.VertexArrayBinding);
+                    int boundEbo = GL.GetInteger(GetPName.ElementArrayBufferBinding);
+                    int currentProgram = GL.GetInteger(GetPName.CurrentProgram);
+                    GL.GetProgram(shaderProgramId, GetProgramParameterName.LinkStatus, out int linked);
+                    GL.ValidateProgram(shaderProgramId);
+                    GL.GetProgram(shaderProgramId, GetProgramParameterName.ValidateStatus, out int validated);
+                    int vboSize = 0;
+                    int eboSize = 0;
+                    GL.GetBufferParameter(BufferTarget.ArrayBuffer, BufferParameterName.BufferSize, out vboSize);
+                    GL.GetBufferParameter(BufferTarget.ElementArrayBuffer, BufferParameterName.BufferSize, out eboSize);
+                    int texUnit = texture != null ? texture.TextureUnit : -1;
+                    Console.WriteLine($"Mesh draw state: vao={Vao.id} boundVao={boundVao} ebo={ibo_.id} boundEbo={boundEbo} vbo={vbo_.id} program={currentProgram} shaderProgram={shaderProgramId} linked={linked} validated={validated} indices={mesh.visibleIndices.Count} verts={mesh.visibleVerticesData.Count} vboSize={vboSize} eboSize={eboSize} texUnit={texUnit} shadowUnits={Engine.shadowMapArray.smallShadowMapArrayUnit},{Engine.shadowMapArray.mediumShadowMapArrayUnit},{Engine.shadowMapArray.largeShadowMapArrayUnit},{Engine.shadowMapArray.cubeShadowMapArrayUnit}");
+                    if (linked == 0 || validated == 0)
+                    {
+                        string infoLog = GL.GetProgramInfoLog(shaderProgramId);
+                        Console.WriteLine($"Mesh program info log: {infoLog}");
+                    }
+                }
             }
         }
         

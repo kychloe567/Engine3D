@@ -48,12 +48,14 @@ namespace Engine3D
         public Camera(Vector2 screenSize, Object parentObject)
         {
             this.screenSize = screenSize;
+            gameScreenSize = screenSize;
+            gameScreenPos = Vector2.Zero;
             this.parentObject = parentObject;
 
             near = 0.1f;
             far = 1000.0f;
             fov = 60.0f;
-            aspectRatio = gameScreenSize.X / gameScreenSize.Y;
+            aspectRatio = screenSize.Y != 0 ? screenSize.X / screenSize.Y : 1.0f;
 
             UpdateAll();
         }

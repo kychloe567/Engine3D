@@ -28,10 +28,10 @@ namespace Engine3D
         {
             if (smallShadowMapArrayUnit == -1)
             {
-                smallShadowMapArrayUnit = Engine.textureManager.GetTextureUnit();
-                mediumShadowMapArrayUnit = Engine.textureManager.GetTextureUnit();
-                largeShadowMapArrayUnit = Engine.textureManager.GetTextureUnit();
-                cubeShadowMapArrayUnit = Engine.textureManager.GetTextureUnit();
+                smallShadowMapArrayUnit = 0;
+                mediumShadowMapArrayUnit = 1;
+                largeShadowMapArrayUnit = 2;
+                cubeShadowMapArrayUnit = 3;
             }
         }
 

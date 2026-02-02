@@ -1169,17 +1169,30 @@ namespace Engine3D
             }
         }
 
-        private void CheckGLError(string tag)
+        private bool CheckGLErrorOnce(string tag)
         {
             OpenTK.Graphics.OpenGL4.ErrorCode err;
+            bool hadError = false;
             while ((err = GL.GetError()) != OpenTK.Graphics.OpenGL4.ErrorCode.NoError)
             {
                 if (!_glErrorLoggedThisFrame)
                 {
                     Console.WriteLine($"GL ERROR ({tag}): {err}");
                     _glErrorLoggedThisFrame = true;
+                    hadError = true;
                 }
             }
+            return hadError;
+        }
+
+        private void CheckGLError(string tag)
+        {
+            CheckGLErrorOnce(tag);
+        }
+
+        internal static bool InstanceCheckGLErrorOnce(string tag)
+        {
+            return ActiveGameWindow?.CheckGLErrorOnce(tag) ?? false;
         }
 
         private void EnableDebugOutput()

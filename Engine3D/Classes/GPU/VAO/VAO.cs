@@ -35,11 +35,8 @@ namespace Engine3D
 
         public void Bind()
         {
-            if (Engine.GLState.vaoBound != id)
-            {
-                GL.BindVertexArray(id);
-                Engine.GLState.vaoBound = id;
-            }
+            GL.BindVertexArray(id);
+            Engine.GLState.vaoBound = id;
         }
 
         public void Unbind()

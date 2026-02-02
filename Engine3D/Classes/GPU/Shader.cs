@@ -78,6 +78,7 @@ namespace Engine3D
             {
                 string infoLog = GL.GetProgramInfoLog(programId);
                 Engine.consoleManager.AddLog($"Shader Program Link Error: {infoLog}", LogType.Error);
+                Console.WriteLine($"Shader Program Link Error ({folder}): {infoLog}");
             }
 
             Use();
@@ -120,11 +121,8 @@ namespace Engine3D
 
         public void Use()
         {
-            if (Engine.GLState.currentShaderId != programId)
-            {
-                GL.UseProgram(programId);
-                Engine.GLState.currentShaderId = programId;
-            }
+            GL.UseProgram(programId);
+            Engine.GLState.currentShaderId = programId;
         }
 
         public void Unload()

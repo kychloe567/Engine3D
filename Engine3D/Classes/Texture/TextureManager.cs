@@ -12,7 +12,7 @@ namespace Engine3D
     {
         public Dictionary<string, Texture> textures = new Dictionary<string, Texture>();
 
-        public static int textureCount = 0;
+        public static int textureCount = 4;
 
         public TextureManager() { }
 

@@ -28,6 +28,7 @@ namespace Engine3D
 
         public void Bind()
         {
+            Engine.GLState.iboBound = id;
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, id);
         }
 
